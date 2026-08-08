@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Your Session | AGUYB Studios</title>
+<meta name="description" content="Book your video podcast, corporate storytelling or content production session at AGUYB Studios in Jacksonville.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<header class="nav" id="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="logo">
+      <span class="logo-mark">A</span>
+      <span>
+        AGUYB STUDIOS
+        <span class="logo-sub">VIDEO &amp; CONTENT STUDIO</span>
+      </span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="index.html#services">What We Build</a>
+      <a href="index.html#sets">Sets</a>
+      <a href="on-site-production.html">On&#8209;Site</a>
+      <a href="index.html#bundles">Bundles</a>
+      <a href="blog.html">Blog</a>
+      <a href="faq.html">FAQ</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+
+    <div class="nav-cta">
+      <a href="#bookingForm" class="btn btn-ghost btn-sm">Jump to Form</a>
+      <button class="nav-toggle" id="navToggle" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html#services">What We Build</a>
+  <a href="index.html#sets">Sets</a>
+  <a href="on-site-production.html">On-Site</a>
+  <a href="index.html#bundles">Bundles</a>
+  <a href="blog.html">Blog</a>
+  <a href="faq.html">FAQ</a>
+  <a href="index.html#contact">Contact</a>
+  <a href="#bookingForm" class="btn btn-primary" style="margin-top:10px;">Jump to Form</a>
+</div>
+
+<!-- ============ BOOKING HERO ============ -->
+<section class="hero" style="min-height:auto;">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="container booking-hero" style="position:relative;z-index:2;">
+    <div class="eyebrow" style="justify-content:center;">Book a Session</div>
+    <h1 class="reveal">Let&rsquo;s get your session on the calendar</h1>
+    <p class="reveal">Tell us what you&rsquo;re producing, pick a set and a bundle if you already know, and we&rsquo;ll confirm your date within one business day.</p>
+  </div>
+</section>
+
+<!-- ============ HOW BOOKING WORKS ============ -->
+<section class="section section-light">
+  <div class="container">
+    <div class="booking-steps reveal">
+      <div class="booking-step glass">
+        <div class="process-index">01</div>
+        <h4>Tell us about your project</h4>
+        <p>Fill out the form below with your project type, preferred set and bundle, and your ideal date.</p>
+      </div>
+      <div class="booking-step glass">
+        <div class="process-index">02</div>
+        <h4>We confirm your session</h4>
+        <p>Our team follows up within one business day to lock in your date and walk through details.</p>
+      </div>
+      <div class="booking-step glass">
+        <div class="process-index">03</div>
+        <h4>Show up and create</h4>
+        <p>Walk into a fully set studio, everything lit, mic'd and ready before you arrive.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BOOKING FORM ============ -->
+<section class="section" id="bookingForm">
+  <div class="glow glow-blue" style="width:520px;height:520px;top:0;right:-220px;"></div>
+  <div class="container">
+    <form class="booking-form-panel glass reveal" id="bookingFormEl" data-submits-to="Wix Forms: Aguyb Studios Leads">
+      <h2>Book Your Session</h2>
+      <p>Fields marked with the set or bundle you came from are pre&#8209;selected automatically.</p>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="bk-name">Name</label>
+          <input type="text" id="bk-name" name="name" placeholder="Your name" required>
+        </div>
+        <div class="form-field">
+          <label for="bk-email">Email</label>
+          <input type="email" id="bk-email" name="email" placeholder="you@company.com" required>
+        </div>
+        <div class="form-field">
+          <label for="bk-phone">Phone</label>
+          <input type="tel" id="bk-phone" name="phone" placeholder="(904) 000-0000" required>
+        </div>
+        <div class="form-field">
+          <label for="bk-company">Company</label>
+          <input type="text" id="bk-company" name="company" placeholder="Business name">
+        </div>
+
+        <div class="form-field">
+          <label for="bk-set">Preferred Set</label>
+          <select id="bk-set" name="preferred_set">
+            <option value="not-sure">Not sure yet</option>
+            <option value="podcast">The Podcast Set</option>
+            <option value="interview">The Interview Set</option>
+            <option value="corporate">The Corporate Set</option>
+            <option value="product">The Product Set</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="bk-bundle">Preferred Bundle</label>
+          <select id="bk-bundle" name="preferred_bundle">
+            <option value="not-sure">Not sure yet</option>
+            <option value="starter">Starter Session, $597</option>
+            <option value="content-engine">Content Engine, $1,950/mo</option>
+            <option value="corporate-partner">Corporate Partner, from $3,800/mo</option>
+            <option value="on-site">On-Site Podcast Production, $1,500/hr</option>
+            <option value="on-site-2hr">2 Hour Offsite Booking, $2,000</option>
+            <option value="on-site-3hr">3 Hour Offsite Booking, $2,500</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="bk-date">Preferred Date</label>
+          <input type="date" id="bk-date" name="preferred_date">
+        </div>
+        <div class="form-field">
+          <label for="bk-time">Preferred Time</label>
+          <select id="bk-time" name="preferred_time">
+            <option>Morning (9am - 12pm)</option>
+            <option>Afternoon (12pm - 4pm)</option>
+            <option>Evening (4pm - 7pm)</option>
+            <option>Flexible</option>
+          </select>
+        </div>
+
+        <div class="form-field full">
+          <label for="bk-details">Project Details</label>
+          <textarea id="bk-details" name="project_details" placeholder="What are we creating? Number of guests, run time, anything we should know before you arrive."></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Request This Session</button>
+        <span class="form-note">This confirms a request, not a booked slot. We'll follow up to finalize your date.</span>
+      </div>
+      <div class="form-status"></div>
+    </form>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-about">
+        <a href="index.html" class="logo">
+          <span class="logo-mark">A</span>
+          <span>AGUYB STUDIOS</span>
+        </a>
+        <p>Professional video podcast production and content studio based in Jacksonville, Florida.</p>
+        <div class="footer-social">
+          <a href="#" class="glass" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1"></circle></svg></a>
+          <a href="#" class="glass" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"></rect><line x1="8" y1="11" x2="8" y2="16"></line><line x1="8" y1="8" x2="8" y2="8"></line><line x1="12" y1="11" x2="12" y2="16"></line><path d="M12 13c0-1.5 1-2 2-2s2 .5 2 2v3"></path></svg></a>
+          <a href="#" class="glass" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="4"></rect><path d="M10 9l5 3-5 3V9z"></path></svg></a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h5>Studio</h5>
+        <ul>
+          <li><a href="index.html#services">What We Build</a></li>
+          <li><a href="index.html#sets">Sets</a></li>
+          <li><a href="on-site-production.html">On-Site Production</a></li>
+          <li><a href="index.html#process">Process</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="index.html#bundles">Bundles</a></li>
+          <li><a href="index.html#reviews">Reviews</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="index.html#contact">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Contact</h5>
+        <ul>
+          <li><a href="mailto:hello@aguybstudios.com">hello@aguybstudios.com</a></li>
+          <li><a href="tel:+19045551234">(904) 555&#8209;1234</a></li>
+          <li><a href="index.html">Back to Home</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>&copy; <span id="year"></span> AGUYB Studios. All rights reserved.</span>
+      <span>Raising the standard of visual storytelling in Jacksonville.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,297 @@
+/* ==========================================================================
+   AGUYB STUDIOS - Frontend Interactions
+   ========================================================================== */
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  // ---------- Sticky nav background on scroll ----------
+  const nav = document.getElementById('nav');
+  if (nav) {
+    const onScroll = () => {
+      if (window.scrollY > 40) {
+        nav.classList.add('is-scrolled');
+      } else {
+        nav.classList.remove('is-scrolled');
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+
+  // ---------- Mobile menu toggle ----------
+  const navToggle = document.getElementById('navToggle');
+  const mobileMenu = document.getElementById('mobileMenu');
+
+  if (navToggle && mobileMenu) {
+    const closeMenu = () => {
+      navToggle.classList.remove('active');
+      mobileMenu.classList.remove('active');
+      document.body.style.overflow = '';
+    };
+
+    navToggle.addEventListener('click', () => {
+      const isActive = navToggle.classList.toggle('active');
+      mobileMenu.classList.toggle('active');
+      document.body.style.overflow = isActive ? 'hidden' : '';
+    });
+
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', closeMenu);
+    });
+  }
+
+  // ---------- Scroll reveal ----------
+  const revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+
+    revealEls.forEach(el => io.observe(el));
+  } else {
+    revealEls.forEach(el => el.classList.add('in-view'));
+  }
+
+  // ---------- Footer year ----------
+  const yearEl = document.getElementById('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+  // ---------- Graceful image fallback ----------
+  // If a placeholder photo fails to load (e.g. swapped for real brand photography
+  // later, or offline), fall back to a branded gradient so layout never breaks.
+  document.querySelectorAll('img').forEach(img => {
+    img.addEventListener('error', function handler() {
+      this.removeEventListener('error', handler);
+      this.classList.add('img-fallback');
+      this.removeAttribute('src');
+    });
+  });
+
+  // ---------- Smooth anchor scroll offset for fixed nav ----------
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const targetId = this.getAttribute('href');
+      if (targetId.length > 1) {
+        const target = document.querySelector(targetId);
+        if (target) {
+          e.preventDefault();
+          const offset = 90;
+          const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+      }
+    });
+  });
+
+  // ---------- Services accordion ("What We Build") ----------
+  document.querySelectorAll('.acc-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const item = header.closest('.acc-item');
+      const list = header.closest('.acc-list');
+      const wasOpen = item.classList.contains('is-open');
+
+      list.querySelectorAll('.acc-item').forEach(i => {
+        i.classList.remove('is-open');
+        i.querySelector('.acc-header').setAttribute('aria-expanded', 'false');
+      });
+
+      if (!wasOpen) {
+        item.classList.add('is-open');
+        header.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  // ---------- Video lightbox (reel cards, set cards, studio tour buttons) ----------
+  const lightbox = document.getElementById('lightbox');
+  const lightboxVideo = document.getElementById('lightboxVideo');
+  const lightboxCaption = document.getElementById('lightboxCaption');
+  const lightboxClose = document.getElementById('lightboxClose');
+
+  if (lightbox && lightboxVideo) {
+    const openLightbox = (src, poster, caption) => {
+      if (src) lightboxVideo.setAttribute('src', src);
+      if (poster) lightboxVideo.setAttribute('poster', poster);
+      lightboxCaption.textContent = caption || '';
+      lightbox.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      lightboxVideo.play().catch(() => {
+        /* Autoplay may be blocked or the placeholder video file may not exist
+           yet, the poster image still displays so the layout never breaks. */
+      });
+    };
+
+    const closeLightbox = () => {
+      lightbox.classList.remove('active');
+      lightboxVideo.pause();
+      lightboxVideo.removeAttribute('src');
+      lightboxVideo.load();
+      document.body.style.overflow = '';
+    };
+
+    document.querySelectorAll('[data-video]').forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        openLightbox(trigger.dataset.video, trigger.dataset.poster, trigger.dataset.caption);
+      });
+    });
+
+    lightboxClose.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) closeLightbox();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && lightbox.classList.contains('active')) closeLightbox();
+    });
+  }
+
+  // ---------- Form submission (contact + booking) ----------
+  // Both forms submit straight into the real "Aguyb Studios Leads" form that
+  // already lives on the live Wix site (Settings > Forms & Submissions in
+  // the Wix dashboard), via the headless OAuth client set up for this
+  // project. No backend of our own, no Formspree, no build step: the
+  // browser requests a short-lived anonymous visitor token from Wix, then
+  // posts the submission straight to Wix Forms. See README > "Wix Headless"
+  // for the full explanation and the Client ID in use.
+  const WIX_SITE_HEADLESS_CLIENT_ID = "b21d16f1-0865-4b6c-82c9-8fc43d39c696";
+  const WIX_LEADS_FORM_ID = "da04b51e-e4f0-4e4b-9c0f-d89b88c7e9c7";
+
+  const splitName = (fullName) => {
+    const parts = (fullName || '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return { first: 'Website Visitor', last: '-' };
+    if (parts.length === 1) return { first: parts[0], last: '-' };
+    return { first: parts[0], last: parts.slice(1).join(' ') };
+  };
+
+  async function getWixVisitorToken() {
+    const res = await fetch('https://www.wixapis.com/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId: WIX_SITE_HEADLESS_CLIENT_ID, grantType: 'anonymous' })
+    });
+    if (!res.ok) throw new Error('Could not authenticate with Wix');
+    const data = await res.json();
+    return data.access_token;
+  }
+
+  async function submitToWixLeadsForm(overview, { name, company, phone, email }) {
+    const token = await getWixVisitorToken();
+    const { first, last } = splitName(name);
+
+    const res = await fetch('https://www.wixapis.com/forms/v4/submissions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: token },
+      body: JSON.stringify({
+        submission: {
+          formId: WIX_LEADS_FORM_ID,
+          namespace: 'wix.form_app.form',
+          submissions: {
+            first_name_c434: first,
+            last_name_26dc: last,
+            email_2657: email || '',
+            phone_9a7f: phone || 'Not provided',
+            company_name_d455: company || '',
+            project_overview_what_you_are_looking_for: overview
+          }
+        }
+      })
+    });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error('Wix Forms rejected the submission: ' + res.status + ' ' + body);
+    }
+    return res.json();
+  }
+
+  const handleFormSubmit = (form, buildOverview) => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = form.querySelector('.form-status');
+      const btn = form.querySelector('button[type="submit"]');
+      const originalLabel = btn.textContent;
+
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+      status.className = 'form-status';
+
+      try {
+        const data = new FormData(form);
+        const contact = {
+          name: data.get('name'),
+          company: data.get('company'),
+          phone: data.get('phone'),
+          email: data.get('email')
+        };
+        const overview = buildOverview(data);
+
+        await submitToWixLeadsForm(overview, contact);
+
+        status.textContent = "Thanks, we've received your request and will follow up within one business day.";
+        status.classList.add('show', 'success');
+        form.reset();
+      } catch (err) {
+        status.textContent = "We couldn't submit this automatically yet. Please email hello@aguybstudios.com directly and we'll take it from there.";
+        status.classList.add('show', 'error');
+      } finally {
+        btn.textContent = originalLabel;
+        btn.disabled = false;
+      }
+    });
+  };
+
+  const contactForm = document.getElementById('contactForm');
+  if (contactForm) {
+    handleFormSubmit(contactForm, (data) => {
+      const lines = [
+        'Project type: ' + (data.get('project_type') || 'Not specified'),
+        'Newsletter opt-in: ' + (data.get('subscribe') ? 'Yes' : 'No'),
+        '',
+        data.get('message') || ''
+      ];
+      return lines.join('\n');
+    });
+  }
+
+  const bookingForm = document.getElementById('bookingFormEl');
+  if (bookingForm) {
+    handleFormSubmit(bookingForm, (data) => {
+      const lines = [
+        'BOOKING REQUEST',
+        'Preferred set: ' + (data.get('preferred_set') || 'Not sure yet'),
+        'Preferred bundle: ' + (data.get('preferred_bundle') || 'Not sure yet'),
+        'Preferred date: ' + (data.get('preferred_date') || 'Flexible'),
+        'Preferred time: ' + (data.get('preferred_time') || 'Flexible'),
+        '',
+        data.get('project_details') || ''
+      ];
+      return lines.join('\n');
+    });
+  }
+
+  // ---------- Booking page: pre-select set / bundle from query string ----------
+  // Links like booking.html?set=podcast or booking.html?bundle=content-engine
+  // (used throughout the Sets and Bundles sections) land here pre-filled.
+  const setSelect = document.getElementById('bk-set');
+  const bundleSelect = document.getElementById('bk-bundle');
+  if (setSelect || bundleSelect) {
+    const params = new URLSearchParams(window.location.search);
+    const setParam = params.get('set');
+    const bundleParam = params.get('bundle');
+
+    if (setSelect && setParam) {
+      const option = setSelect.querySelector(`option[value="${setParam}"]`);
+      if (option) setSelect.value = setParam;
+    }
+    if (bundleSelect && bundleParam) {
+      const option = bundleSelect.querySelector(`option[value="${bundleParam}"]`);
+      if (option) bundleSelect.value = bundleParam;
+    }
+  }
+
+});

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wix Headless Connection Test | AGUYB Studios (internal)</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  .test-wrap { max-width: 760px; margin: 0 auto; padding: 60px 24px 100px; }
+  .test-log { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; background: rgba(0,0,0,0.35); border: 1px solid var(--surface-glass-border); border-radius: 10px; padding: 18px; margin-top: 18px; }
+  .test-status { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; padding: 6px 14px; border-radius: 999px; font-size: 13px; margin-top: 6px; }
+  .test-status.pending { background: rgba(23,167,209,0.14); color: var(--cyan); }
+  .test-status.ok { background: rgba(46,204,113,0.14); color: #2ecc71; }
+  .test-status.fail { background: rgba(231,76,60,0.14); color: #e74c3c; }
+  .test-services { margin-top: 18px; display: grid; gap: 10px; }
+  .test-service-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 16px; border: 1px solid var(--surface-glass-border); border-radius: 8px; background: var(--surface-glass-bg); }
+</style>
+</head>
+<body style="background: var(--bg-deep);">
+
+<div class="test-wrap">
+  <div class="eyebrow">Internal / Not Linked From Site Nav</div>
+  <h1 style="margin-top:10px;">Wix Headless Connection Test</h1>
+  <p style="color: var(--text-2); max-width: 60ch;">
+    This page calls your live AGUYB Studios Wix site (<code>www.aguybstudios.com</code>) directly from
+    the browser using the headless OAuth client registered for this project. It only performs
+    read&#8209;only calls as an anonymous visitor &mdash; it cannot modify, publish, or take down anything
+    on the Wix side. Open this file locally (see README) or from GitHub Pages to run the test.
+  </p>
+
+  <div id="tokenStatus" class="test-status pending">Requesting visitor token&hellip;</div>
+  <div id="servicesStatus" class="test-status pending" style="margin-left:8px;">Waiting on token</div>
+
+  <div id="serviceList" class="test-services"></div>
+  <div id="log" class="test-log">Starting test&hellip;</div>
+</div>
+
+<script>
+  // Headless OAuth app registered on the live AGUYB Studios Wix site
+  // (Settings > Development & Integrations > Headless Settings on wix.com).
+  // This Client ID is safe to expose in client-side code: it can only ever
+  // request an anonymous VISITOR token, which has the same read access any
+  // site visitor already has. It cannot authenticate as the site owner and
+  // cannot be used to publish, delete, or reconfigure the site.
+  const WIX_CLIENT_ID = "b21d16f1-0865-4b6c-82c9-8fc43d39c696";
+
+  const logEl = document.getElementById('log');
+  const tokenStatusEl = document.getElementById('tokenStatus');
+  const servicesStatusEl = document.getElementById('servicesStatus');
+  const serviceListEl = document.getElementById('serviceList');
+
+  function log(line) {
+    logEl.textContent += "\n" + line;
+  }
+
+  function setStatus(el, state, text) {
+    el.className = "test-status " + state;
+    el.textContent = text;
+  }
+
+  async function getVisitorToken() {
+    log("POST https://www.wixapis.com/oauth2/token (grantType: anonymous)");
+    const res = await fetch("https://www.wixapis.com/oauth2/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clientId: WIX_CLIENT_ID, grantType: "anonymous" })
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error("Token request failed (" + res.status + "): " + body);
+    }
+    const data = await res.json();
+    log("Received visitor access token (expires in " + data.expires_in + "s).");
+    return data.access_token;
+  }
+
+  async function queryServices(token) {
+    log("POST https://www.wixapis.com/bookings/v2/services/query");
+    const res = await fetch("https://www.wixapis.com/bookings/v2/services/query", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token
+      },
+      body: JSON.stringify({
+        query: {
+          paging: { limit: 15 },
+          filter: { hidden: { "$eq": false } }
+        }
+      })
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error("Query Services failed (" + res.status + "): " + body);
+    }
+    return res.json();
+  }
+
+  function renderServices(services) {
+    if (!services || !services.length) {
+      serviceListEl.innerHTML = "<p style='color:var(--text-2);'>No public Bookings services found on the site yet (that's fine, it just means none are set up in Wix Bookings, or none are marked visible).</p>";
+      return;
+    }
+    serviceListEl.innerHTML = services.map(function (s) {
+      const name = (s.name || "Untitled service");
+      const priceObj = s.payment && s.payment.rateType ? s.payment.rateType : "";
+      return '<div class="test-service-row"><span>' + name + '</span><span style="color:var(--text-2);">' + priceObj + '</span></div>';
+    }).join("");
+  }
+
+  (async function run() {
+    try {
+      const token = await getVisitorToken();
+      setStatus(tokenStatusEl, "ok", "Visitor token: OK");
+      setStatus(servicesStatusEl, "pending", "Querying Wix Bookings services…");
+
+      const data = await queryServices(token);
+      const services = data.services || [];
+      setStatus(servicesStatusEl, "ok", "Connected: " + services.length + " service(s) returned");
+      log("Success. Services returned: " + services.length);
+      renderServices(services);
+    } catch (err) {
+      log("ERROR: " + err.message);
+      if (tokenStatusEl.textContent.indexOf("token") > -1 && tokenStatusEl.classList.contains("pending")) {
+        setStatus(tokenStatusEl, "fail", "Visitor token: FAILED");
+      } else {
+        setStatus(servicesStatusEl, "fail", "Query failed");
+      }
+    }
+  })();
+</script>
+
+</body>
+</html>
