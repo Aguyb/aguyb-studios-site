@@ -378,6 +378,28 @@
     }
   }
 
+  function renderContentBlocksPricing(blocks) {
+    const hero = byBlockKey(blocks, "pricing_hero");
+    fillHead(document.querySelector(".hero-inner"), hero, { headingSelector: "h1", subSelector: "p" });
+
+    fillHead(document.querySelector("#included .section-head"), byBlockKey(blocks, "pricing_included_intro"));
+    fillHead(document.querySelector("#pricing-tiers .section-head"), byBlockKey(blocks, "pricing_tiers_intro"));
+
+    const finalCta = byBlockKey(blocks, "pricing_final_cta");
+    fillHead(document.querySelector(".final-cta"), finalCta);
+    const finalCtaEl = document.querySelector(".final-cta .container");
+    if (finalCtaEl && finalCta) fillCtas(finalCtaEl, finalCta);
+
+    const footerAbout = byBlockKey(blocks, "footer_about");
+    if (footerAbout) {
+      document.querySelectorAll(".footer-about p").forEach((p) => {
+        if (footerAbout.body) p.textContent = footerAbout.body;
+      });
+      const tagline = document.querySelector(".footer-bottom span:last-child");
+      if (tagline && footerAbout.heading) tagline.textContent = footerAbout.heading;
+    }
+  }
+
   // ---------- collection-driven repeating sections ----------
   function renderServices(services) {
     if (!services) return;
@@ -606,6 +628,23 @@
       .join("");
   }
 
+  function renderPricingTiers(tiers) {
+    if (!tiers) return;
+    const grid = document.querySelector("#pricing-tiers .bundles-grid");
+    if (!grid) return;
+    grid.innerHTML = tiers
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .map((t) => `
+        <div class="bundle-card glass${t.badge ? " featured" : ""}">
+          ${t.badge ? `<div class="bundle-badge">${esc(t.badge)}</div>` : ""}
+          <div class="bundle-name">${esc(t.name)}</div>
+          <div class="bundle-price">$${esc(t.price)}</div>
+          <div class="bundle-cadence">${esc(t.durationLabel)} studio rental</div>
+          <a href="booking.html?bundle=${esc(t.bookingParam)}" class="btn ${t.badge ? "btn-primary" : "btn-ghost"} btn-block">Book This Package</a>
+        </div>`)
+      .join("");
+  }
+
   // ---------- rebind interactive behavior main.js already wired up ----------
   // main.js attaches accordion/lightbox/reveal listeners on DOMContentLoaded,
   // before this file has replaced any innerHTML. Re-run the same lightweight
@@ -717,6 +756,10 @@
         if (contentBlocks) renderContentBlocksBlog(contentBlocks);
         renderBlogPosts(blogPosts);
         renderSets(sets);
+      } else if (PAGE === "pricing") {
+        const pricingTiers = await queryCollection("pricing_tiers", "order");
+        if (contentBlocks) renderContentBlocksPricing(contentBlocks);
+        renderPricingTiers(pricingTiers);
       }
 
       rebindInteractivity();
