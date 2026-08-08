@@ -259,7 +259,7 @@ breaks.
 | `onsite_packages` | The hourly rate plus the 2-hour and 3-hour offsite packages |
 | `coverage_areas` | The 6 coverage-area tags |
 | `faq_items` | All 17 FAQ questions and answers |
-| `blog_posts` | The 6 blog post cards |
+| `blog_posts` | The 6 blog post cards, and the full article page each one links to (see below) |
 | `site_settings` | Email, phone, city, and social links (Instagram/LinkedIn/YouTube), used sitewide |
 
 Every collection is set to public read (`ANYONE`) so visitors can load it,
@@ -314,6 +314,41 @@ whichever, a Wix Media Manager pick or a plain URL, automatically.
 The video always plays muted (autoplay policies in every browser require
 this) and silently falls back to the still image if the video fails to
 load or the browser blocks autoplay.
+
+## Blog: full article pages, not just cards
+
+Every blog post card on `blog.html` now links to a real, complete article
+page under `/articles/`, each one built with the same visual style as the
+rest of the site, not a stub. Each article page has:
+
+- The full article text (several real, on-topic paragraphs, not a
+  placeholder excerpt).
+- A **Recommended Video** card inside the article that opens in the site's
+  existing video lightbox when clicked.
+- A sticky sidebar with a **Book Your Session** button, links to 3 other
+  articles, and the same "Explore Our Sets" block as the blog list page.
+
+All 6 are editable from the same `blog_posts` collection you already use
+for the cards, it now also has:
+
+| Field | Powers |
+|---|---|
+| `slug` | The article's URL, e.g. `slug: my-post` &rarr; `articles/my-post.html` |
+| `body` | The full article text. Separate paragraphs with a blank line between them in the Content Manager, each becomes its own paragraph on the page. |
+| `author` | Byline shown under the title |
+| `videoCaption` | Title shown on the Recommended Video card |
+| `videoUrl` | The Recommended Video itself, a real Media Manager picker field just like the hero background video, upload or pick a clip from Wix, or leave empty to keep the placeholder |
+
+Editing an existing post's `body`, `title`, `excerpt`, `category`, cover
+`image`, or video fields updates its article page automatically on next
+load, the same progressive-enhancement pattern as the rest of the site,
+the static article text is a complete real fallback, the CMS only
+overwrites it if you've since changed something in the dashboard.
+
+**Adding a brand-new 7th post** isn't fully automatic yet, adding a row to
+`blog_posts` will make it appear as a card on `blog.html`, but its
+`articles/<slug>.html` page needs to be built once (it's a small, fast
+follow-up, ask any time you add a new post and want its page live).
 
 ## Real booking: pick an hour, see real availability, pay on Wix
 

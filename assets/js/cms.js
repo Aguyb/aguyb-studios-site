@@ -672,15 +672,90 @@
       .sort((a, b) => (a.order || 0) - (b.order || 0))
       .map((p) => `
         <article class="post-card reveal">
-          <div class="post-media"><img src="${esc(p.image)}" alt="Blog post cover"></div>
+          <div class="post-media"><img src="${esc(resolveWixMediaUrl(p.image))}" alt="Blog post cover"></div>
           <div class="post-body">
             <div class="post-meta"><span class="post-tag">${esc(p.category)}</span><span>&middot;</span><span>${esc(p.postDate)}</span></div>
             <h3>${esc(p.title)}</h3>
             <p>${esc(p.excerpt)}</p>
-            <a href="#" class="post-readmore">Read More &rarr;</a>
+            <a href="${p.slug ? "articles/" + esc(p.slug) + ".html" : "#"}" class="post-readmore">Read More &rarr;</a>
           </div>
         </article>`)
       .join("");
+  }
+
+  // Fetches a single item from a collection by an exact-match field, e.g.
+  // looking up one blog post by its slug for the article detail page.
+  async function queryCollectionOneBy(dataCollectionId, fieldName, fieldValue) {
+    try {
+      const token = await getVisitorToken();
+      const res = await fetch("https://www.wixapis.com/wix-data/v2/items/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: token },
+        body: JSON.stringify({
+          dataCollectionId,
+          query: { filter: { [fieldName]: fieldValue }, paging: { limit: 1 } }
+        })
+      });
+      if (!res.ok) throw new Error("CMS query failed for " + dataCollectionId + ": " + res.status);
+      const json = await res.json();
+      const items = json.dataItems || [];
+      return items.length ? items[0].data : null;
+    } catch (err) {
+      console.warn("[AGUYB CMS] Falling back to static content for", dataCollectionId, err.message);
+      return null; // signal "leave the static HTML alone"
+    }
+  }
+
+  // Fills in the single-article page (article.html templates under /articles)
+  // from the matching blog_posts CMS item, keyed by the page's data-post-slug.
+  // The static HTML already on the page is a complete, real article, this
+  // only overwrites it if the CMS item was edited since these pages were built.
+  function renderArticlePage(post) {
+    if (!post) return;
+
+    const imageUrl = resolveWixMediaUrl(post.image);
+
+    const metaEl = document.querySelector(".article-meta");
+    if (metaEl) {
+      const spans = metaEl.querySelectorAll("span");
+      if (spans[0] && post.category) spans[0].textContent = post.category;
+      if (spans[2] && post.postDate) spans[2].textContent = post.postDate;
+      if (spans[4] && post.author) spans[4].textContent = post.author;
+    }
+
+    const titleEl = document.querySelector(".article-title");
+    if (titleEl && post.title) titleEl.textContent = post.title;
+
+    const excerptEl = document.querySelector(".article-excerpt");
+    if (excerptEl && post.excerpt) excerptEl.textContent = post.excerpt;
+
+    const coverImg = document.querySelector(".article-cover img");
+    if (coverImg && imageUrl) {
+      coverImg.setAttribute("src", imageUrl);
+      if (post.title) coverImg.setAttribute("alt", post.title);
+    }
+
+    const bodyEl = document.querySelector(".article-body");
+    if (post.body && bodyEl) {
+      bodyEl.innerHTML = post.body
+        .split("\n\n")
+        .filter(Boolean)
+        .map((para) => `<p>${esc(para)}</p>`)
+        .join("");
+    }
+
+    const videoCard = document.querySelector(".article-video-card");
+    if (videoCard) {
+      const videoUrl = resolveWixMediaUrl(post.videoUrl);
+      const posterUrl = imageUrl || videoCard.getAttribute("data-poster");
+      if (videoUrl) videoCard.setAttribute("data-video", videoUrl); // else keep the static placeholder
+      if (posterUrl) videoCard.setAttribute("data-poster", posterUrl);
+      if (post.videoCaption) videoCard.setAttribute("data-caption", post.videoCaption);
+      const thumbImg = videoCard.querySelector(".article-video-thumb img");
+      if (thumbImg && posterUrl) thumbImg.setAttribute("src", posterUrl);
+      const captionH4 = videoCard.querySelector("h4");
+      if (captionH4 && post.videoCaption) captionH4.textContent = post.videoCaption;
+    }
   }
 
   function renderPricingTiers(tiers) {
@@ -816,6 +891,12 @@
         const pricingTiers = await queryCollection("pricing_tiers", "order");
         if (contentBlocks) renderContentBlocksPricing(contentBlocks);
         renderPricingTiers(pricingTiers);
+      } else if (PAGE === "article") {
+        const slug = document.body.getAttribute("data-post-slug");
+        if (slug) {
+          const post = await queryCollectionOneBy("blog_posts", "slug", slug);
+          renderArticlePage(post);
+        }
       }
 
       rebindInteractivity();
