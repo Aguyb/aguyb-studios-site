@@ -222,3 +222,69 @@ that domain until you intentionally switch DNS/publishing over. If you'd
 rather build this out in a proper framework (Astro, Next.js, etc.) instead
 of hand-written `fetch()` calls, this same Client ID carries over, no need
 to re-register.
+
+## CMS: edit the whole site from your Wix dashboard
+
+Almost everything on the site, nav links, every headline and paragraph,
+services, sets, bundles, reviews, the "Why AGUYB" strip, the 4-step
+process on each page, FAQ questions and answers, blog post cards, the
+on-site pricing packages, the coverage-area tags, and your contact
+email/phone/city/social links, now lives in **Wix Data** (Settings &rarr;
+Content Manager / CMS in your Wix dashboard) instead of being hardcoded in
+the HTML. Edit any of it there and the live site picks it up automatically
+on next page load, no code change, no redeploy.
+
+### How it works
+
+`assets/js/cms.js` runs after the page's static HTML has already loaded
+(so the page is never blank or broken, even offline or if this fails). It
+requests the same anonymous visitor token used by the forms, queries the
+relevant Wix Data collections for that page, and overwrites the matching
+text, links and repeated cards in place. If a query fails for any reason,
+that section just keeps showing its original static content, nothing
+breaks.
+
+### The 13 collections
+
+| Collection | Powers |
+|---|---|
+| `nav_links` | Header nav, mobile menu, and the three footer link columns |
+| `content_blocks` | Every eyebrow / headline / paragraph / button pair, keyed by a `blockKey` per section (e.g. `home_hero`, `onsite_coverage`, `faq_final_cta`) |
+| `services` | The "What We Build" accordion on the home page |
+| `sets` | The 4 studio sets (home page grid + blog sidebar) |
+| `bundles` | The 3 pricing bundles |
+| `reviews` | The 3 testimonial cards |
+| `why_aguyb` | The 4 "Why AGUYB" items |
+| `process_steps` | The 4-step process on the home page, the 3-step "How Booking Works," and the 4-step "How On-Site Production Works" (filtered by a `page` field) |
+| `onsite_packages` | The hourly rate plus the 2-hour and 3-hour offsite packages |
+| `coverage_areas` | The 6 coverage-area tags |
+| `faq_items` | All 17 FAQ questions and answers |
+| `blog_posts` | The 6 blog post cards |
+| `site_settings` | Email, phone, city, and social links (Instagram/LinkedIn/YouTube), used sitewide |
+
+Every collection is set to public read (`ANYONE`) so visitors can load it,
+and admin-only write (`ADMIN`) so only you, from the Wix dashboard, can
+change it.
+
+### Known gaps (still hardcoded, by design for now)
+
+- The **podcast reel carousel** (6 episodes on the home page) and the
+  **"Shows We Recorded On Site" badges** on `on-site-production.html`
+  aren't in a collection yet, there wasn't an existing episodes collection
+  to hook into. Ask if you'd like a `podcast_episodes` collection added,
+  it's a small follow-up.
+- Each service in "What We Build" now uses one shared icon instead of a
+  unique icon per service (the collection stores title + description
+  only).
+- The 3 FAQ answers that used to contain inline links (to the On-Site page,
+  the Sets section, and the booking form) now show as plain text, the CMS
+  field is plain text rather than rich text.
+- `wix-headless-test.html` (the internal connectivity diagnostic page) is
+  not part of this CMS integration, it's a developer tool, not a public
+  page.
+
+### Try it
+
+Open **Content Manager** in your Wix dashboard, open the `why_aguyb`
+collection, change the `title` of the first row, save, then reload the
+live site, the "Why AGUYB" section updates with no code change needed.
