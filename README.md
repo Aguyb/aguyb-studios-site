@@ -288,3 +288,40 @@ change it.
 Open **Content Manager** in your Wix dashboard, open the `why_aguyb`
 collection, change the `title` of the first row, save, then reload the
 live site, the "Why AGUYB" section updates with no code change needed.
+
+## Real booking: pick an hour, see real availability, pay on Wix
+
+`pricing.html`'s 5 Studio Rental tiers (2/3/4/6/8 hours) are wired to your
+**real** Wix Bookings services, prices and calendar, not a lead form. The
+flow, all handled by `assets/js/booking-flow.js`:
+
+1. Visitor clicks **Check Availability & Book** on a tier.
+2. A panel opens with a date picker. Selecting a date calls Wix Bookings'
+   real-time Availability API for that exact service and shows the real
+   open time slots for that day, straight from your calendar.
+3. Clicking a time slot calls Wix's **Redirects API**, which generates a
+   one-time, secure checkout URL for that exact slot, and sends the
+   visitor there.
+4. On Wix's own hosted checkout page (not this site), the visitor can add
+   any configured add-ons, review their cart, fill in their details, and
+   pay, all handled natively by Wix, PCI-compliant, nothing custom-built
+   for payment. Wix then redirects them back to `pricing.html`.
+
+This site never sees or touches card details at any point, the last step
+before payment is always a redirect to a real `wixapis.com`/Wix-hosted
+URL.
+
+- The GitHub Pages domain (`aguyb.github.io`) is registered as an allowed
+  redirect domain on the same headless OAuth client used everywhere else
+  in this project, that's what lets Wix redirect visitors back here safely.
+- If a tier has [add-ons](https://support.wix.com/en/article/wix-bookings-managing-add-ons)
+  configured in your Wix Bookings dashboard, they'll appear automatically
+  on the Wix checkout page, no code change needed here.
+- Real-time availability was tested directly against your live calendar
+  (confirmed real open slots and your real studio address, 7825 Baymeadows
+  Way). The final checkout redirect uses the same visitor-token pattern as
+  the rest of the site and should be smoke-tested once live by actually
+  clicking through to Wix's checkout page.
+- The other CTAs on the site (Bundles, On-Site packages, the general
+  Booking form) are unaffected, they're not schedulable Wix Bookings
+  services, so they still use the lead-gen form described above.

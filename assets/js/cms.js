@@ -640,9 +640,10 @@
           <div class="bundle-name">${esc(t.name)}</div>
           <div class="bundle-price">$${esc(t.price)}</div>
           <div class="bundle-cadence">${esc(t.durationLabel)} studio rental</div>
-          <a href="booking.html?bundle=${esc(t.bookingParam)}" class="btn ${t.badge ? "btn-primary" : "btn-ghost"} btn-block">Book This Package</a>
+          <button type="button" class="btn ${t.badge ? "btn-primary" : "btn-ghost"} btn-block" data-book-service-id="${esc(t.serviceId || "")}" data-book-service-name="${esc(t.name)} — $${esc(t.price)}">Check Availability &amp; Book</button>
         </div>`)
       .join("");
+    if (window.AguybBookingFlow) window.AguybBookingFlow.bindTriggers();
   }
 
   // ---------- rebind interactive behavior main.js already wired up ----------
