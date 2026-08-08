@@ -168,6 +168,21 @@ document.addEventListener('DOMContentLoaded', () => {
     return { first: parts[0], last: parts.slice(1).join(' ') };
   };
 
+  // Wix's phone field validates strict E.164 (a leading "+" and country
+  // code), not a bare 10-digit US number. Assume US/+1 for a 10-digit
+  // number (this studio's whole audience is Jacksonville-area), pass
+  // anything that already looks international straight through, and fall
+  // back to a clearly-fake placeholder rather than let the whole
+  // submission get rejected over an unrecognized format.
+  const formatPhoneE164 = (raw) => {
+    const digits = (raw || '').replace(/[^\d+]/g, '');
+    if (!digits) return '+10000000000';
+    if (digits.startsWith('+')) return digits;
+    if (digits.length === 10) return '+1' + digits;
+    if (digits.length === 11 && digits.startsWith('1')) return '+' + digits;
+    return '+1' + digits.slice(-10).padStart(10, '0');
+  };
+
   async function getWixVisitorToken() {
     const res = await fetch('https://www.wixapis.com/oauth2/token', {
       method: 'POST',
@@ -194,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
             first_name_c434: first,
             last_name_26dc: last,
             email_2657: email || '',
-            phone_9a7f: phone || 'Not provided',
+            phone_9a7f: formatPhoneE164(phone),
             company_name_d455: company || '',
             project_overview_what_you_are_looking_for: overview
           }
