@@ -244,7 +244,7 @@ text, links and repeated cards in place. If a query fails for any reason,
 that section just keeps showing its original static content, nothing
 breaks.
 
-### The 13 collections
+### The 14 collections
 
 | Collection | Powers |
 |---|---|
@@ -254,7 +254,7 @@ breaks.
 | `sets` | The 4 studio sets (home page grid + blog sidebar) |
 | `bundles` | The 3 pricing bundles |
 | `reviews` | The 3 testimonial cards |
-| `why_aguyb` | The 4 "Why AGUYB" items |
+| `shortform_clips` | The short-form clip slideshow (replaced the old "Why AGUYB" strip), see below |
 | `process_steps` | The 4-step process on the home page, the 3-step "How Booking Works," and the 4-step "How On-Site Production Works" (filtered by a `page` field) |
 | `onsite_packages` | The hourly rate plus the 2-hour and 3-hour offsite packages |
 | `coverage_areas` | The 6 coverage-area tags |
@@ -285,9 +285,30 @@ change it.
 
 ### Try it
 
-Open **Content Manager** in your Wix dashboard, open the `why_aguyb`
+Open **Content Manager** in your Wix dashboard, open the `shortform_clips`
 collection, change the `title` of the first row, save, then reload the
-live site, the "Why AGUYB" section updates with no code change needed.
+live site, the short-form clip slideshow updates with no code change needed.
+
+### Short-form clip slideshow
+
+The home page section that used to be "Why AGUYB" (the 4 numbered reasons)
+is now a horizontally-scrolling row of vertical, short-form video cards,
+"A Look at the Clips We Cut", showcasing quick social-ready work instead
+of a text list. Clicking any card opens it in the site's existing video
+lightbox.
+
+It's fully driven by the `shortform_clips` collection:
+
+| Field | Powers |
+|---|---|
+| `title` | Bold label on the card, e.g. "Client Testimonial Cutdown" |
+| `subtitle` | Small tag under the title, e.g. "15-Second Reel" |
+| `posterUrl` | The card's cover image, a real Media Manager picker field |
+| `videoUrl` | The clip itself, a real Media Manager picker field, same as the hero background video, upload or pick a clip, or leave empty to show just the poster |
+| `order` | Left-to-right position |
+
+Add, remove or reorder rows in the Content Manager and the slideshow on
+the home page updates to match, no code change needed.
 
 ### Hero background: swap the photo, or add a video
 

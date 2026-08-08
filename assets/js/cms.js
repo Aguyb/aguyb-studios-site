@@ -553,19 +553,27 @@
       .join("");
   }
 
-  function renderWhy(items) {
-    if (!items) return;
-    const grid = document.querySelector(".why-strip .why-grid");
-    if (!grid) return;
-    grid.innerHTML = items
-      .sort((a, b) => (a.order || 0) - (b.order || 0))
-      .map((w) => `
-        <div class="why-item reveal">
-          <div class="why-num">${String(w.order || 0).padStart(2, "0")}</div>
-          <h4>${esc(w.title)}</h4>
-          <p>${esc(w.description)}</p>
-        </div>`)
-      .join("");
+  // Replaces the "Why AGUYB" strip: a sliding track of short-form clip
+  // cards, each opens in the site's existing video lightbox on click.
+  function renderShortformClips(clips) {
+    if (!clips) return;
+    const track = document.getElementById("shortformTrack");
+    if (!track) return;
+    const sorted = clips.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+    const cardHtml = (c) => {
+      const poster = resolveWixMediaUrl(c.posterUrl);
+      const video = resolveWixMediaUrl(c.videoUrl);
+      const caption = `${c.title || ""}${c.subtitle ? " — " + c.subtitle : ""}`;
+      return `
+        <div class="shortform-card" data-video="${esc(video)}" data-poster="${esc(poster)}" data-caption="${esc(caption)}">
+          <img src="${esc(poster)}" alt="Short-form clip cover">
+          <div class="reel-overlay"><div class="reel-play">${ICON_PLAY}</div><b>${esc(c.title)}</b><span>${esc(c.subtitle)}</span></div>
+        </div>`;
+    };
+    // Duplicate the set once so the CSS scroll animation loops seamlessly,
+    // same trick used by the podcast reel above this section.
+    track.innerHTML = sorted.map(cardHtml).join("") + sorted.map(cardHtml).join("");
+    if (window.AguybLightbox) window.AguybLightbox.bindTriggers();
   }
 
   function renderProcessSteps(all) {
@@ -846,12 +854,12 @@
       renderSiteSettings(siteSettings);
 
       if (PAGE === "home") {
-        const [services, sets, bundles, reviews, why, processSteps] = await Promise.all([
+        const [services, sets, bundles, reviews, shortformClips, processSteps] = await Promise.all([
           queryCollection("services", "order"),
           queryCollection("sets", "order"),
           queryCollection("bundles", "order"),
           queryCollection("reviews", "order"),
-          queryCollection("why_aguyb", "order"),
+          queryCollection("shortform_clips", "order"),
           queryCollection("process_steps")
         ]);
         if (contentBlocks) renderContentBlocksHome(contentBlocks);
@@ -859,7 +867,7 @@
         renderSets(sets);
         renderBundles(bundles);
         renderReviews(reviews);
-        renderWhy(why);
+        renderShortformClips(shortformClips);
         renderProcessSteps(processSteps);
       } else if (PAGE === "booking") {
         const processSteps = await queryCollection("process_steps");

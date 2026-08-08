@@ -468,6 +468,35 @@ h1, h2, h3, h4 {
 .reel-card span { font-size: 12px; color: rgba(255,255,255,0.72); }
 
 /* ==========================================================================
+   Short-form clip slideshow (replaces the old "Why AGUYB" strip)
+   Same sliding-track mechanism as the reel above, but taller vertical
+   9/16 cards to read as short-form / reels-style content, and scrolling
+   the opposite direction for a little visual variety.
+   ========================================================================== */
+.shortform-track {
+  display: flex;
+  gap: 18px;
+  width: max-content;
+  animation: shortform-scroll 34s linear infinite;
+}
+.shortform-track:hover { animation-play-state: paused; }
+@keyframes shortform-scroll {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+.shortform-card {
+  position: relative;
+  flex: 0 0 200px;
+  border-radius: 18px;
+  overflow: hidden;
+  aspect-ratio: 9 / 16;
+  border: 1px solid var(--surface-glass-border);
+  cursor: pointer;
+}
+.shortform-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease); }
+.shortform-card:hover img { transform: scale(1.06); }
+
+/* ==========================================================================
    Movement statement band
    ========================================================================== */
 .movement {
@@ -639,16 +668,6 @@ h1, h2, h3, h4 {
   text-align: center;
   padding: 10px;
 }
-
-/* ==========================================================================
-   Why AGUYB
-   ========================================================================== */
-.why-strip { padding: 90px 0; border-top: 1px solid var(--surface-glass-border); border-bottom: 1px solid var(--surface-glass-border); }
-.why-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 30px; }
-.why-item { text-align: left; }
-.why-num { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; color: var(--cyan); margin-bottom: 14px; letter-spacing: 0.06em; }
-.why-item h4 { font-size: 16.5px; margin-bottom: 10px; }
-.why-item p { font-size: 14px; color: var(--text-2); }
 
 /* ==========================================================================
    Process
@@ -1137,7 +1156,6 @@ h1, h2, h3, h4 {
 
 @media (max-width: 1024px) {
   .services-grid, .sets-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
-  .why-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .process-grid, .booking-steps { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 40px 24px; }
   .process-grid::before { display: none; }
   .bundles-grid, .reviews-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
@@ -1158,7 +1176,6 @@ h1, h2, h3, h4 {
   .hero-actions .btn { flex: 1 1 auto; }
   .movement { padding: 90px 0; }
   .services-grid, .sets-grid { grid-template-columns: 1fr; }
-  .why-grid { grid-template-columns: 1fr; gap: 26px; }
   .process-grid, .booking-steps { grid-template-columns: 1fr; }
   .bundles-grid, .reviews-grid { grid-template-columns: 1fr; }
   .corporate-panel { padding: 40px 26px; }
@@ -1174,5 +1191,6 @@ h1, h2, h3, h4 {
   .footer-bottom { flex-direction: column; align-items: flex-start; }
   .scroll-cue { display: none; }
   .reel-card { flex-basis: 240px; }
+  .shortform-card { flex-basis: 150px; }
   .lightbox-close { top: -50px; right: 6px; }
 }

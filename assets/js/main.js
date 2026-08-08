@@ -134,12 +134,20 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.style.overflow = '';
     };
 
-    document.querySelectorAll('[data-video]').forEach(trigger => {
-      trigger.addEventListener('click', (e) => {
-        e.preventDefault();
-        openLightbox(trigger.dataset.video, trigger.dataset.poster, trigger.dataset.caption);
+    // Named + idempotent so cms.js can call it again after it re-renders a
+    // grid of [data-video] cards (e.g. the short-form clip slideshow) from
+    // Wix Data, without double-binding the cards that were already static.
+    const bindVideoTriggers = () => {
+      document.querySelectorAll('[data-video]:not([data-video-bound])').forEach(trigger => {
+        trigger.setAttribute('data-video-bound', '');
+        trigger.addEventListener('click', (e) => {
+          e.preventDefault();
+          openLightbox(trigger.dataset.video, trigger.dataset.poster, trigger.dataset.caption);
+        });
       });
-    });
+    };
+    bindVideoTriggers();
+    window.AguybLightbox = { bindTriggers: bindVideoTriggers };
 
     lightboxClose.addEventListener('click', closeLightbox);
     lightbox.addEventListener('click', (e) => {
