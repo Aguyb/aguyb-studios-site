@@ -180,8 +180,41 @@
   }
 
   // ---------- content blocks (headings/paragraphs/ctas) ----------
+  // Applies a CMS-managed hero background: a video (if bgVideoUrl is set)
+  // layered over the existing CSS background-image, or just a swapped-in
+  // background image (bgImageUrl). Leaves the section alone if neither is set.
+  function renderHeroBackground(hero) {
+    const heroBg = document.querySelector(".hero-bg");
+    if (!hero || !heroBg) return;
+
+    if (hero.bgImageUrl) heroBg.style.backgroundImage = "url('" + hero.bgImageUrl.replace(/'/g, "%27") + "')";
+
+    let video = heroBg.querySelector("video");
+    if (hero.bgVideoUrl) {
+      if (!video) {
+        video = document.createElement("video");
+        video.muted = true;
+        video.setAttribute("muted", "");
+        video.setAttribute("autoplay", "");
+        video.setAttribute("loop", "");
+        video.setAttribute("playsinline", "");
+        video.setAttribute("aria-hidden", "true");
+        heroBg.insertBefore(video, heroBg.firstChild);
+      }
+      if (hero.bgImageUrl) video.setAttribute("poster", hero.bgImageUrl);
+      if (video.getAttribute("src") !== hero.bgVideoUrl) {
+        video.setAttribute("src", hero.bgVideoUrl);
+        video.load();
+      }
+      video.play().catch(() => {}); // ignore autoplay-blocked errors; poster/image still shows
+    } else if (video) {
+      video.remove();
+    }
+  }
+
   function renderContentBlocksHome(blocks) {
     const hero = byBlockKey(blocks, "home_hero");
+    renderHeroBackground(hero);
     const heroInner = document.querySelector(".hero-inner");
     if (hero && heroInner) {
       const spans = heroInner.querySelectorAll(".hero-title .htl");

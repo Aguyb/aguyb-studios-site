@@ -249,7 +249,7 @@ breaks.
 | Collection | Powers |
 |---|---|
 | `nav_links` | Header nav, mobile menu, and the three footer link columns |
-| `content_blocks` | Every eyebrow / headline / paragraph / button pair, keyed by a `blockKey` per section (e.g. `home_hero`, `onsite_coverage`, `faq_final_cta`) |
+| `content_blocks` | Every eyebrow / headline / paragraph / button pair, keyed by a `blockKey` per section (e.g. `home_hero`, `onsite_coverage`, `faq_final_cta`). The `home_hero` row also has **Background Image URL** and **Background Video URL** fields, see below. |
 | `services` | The "What We Build" accordion on the home page |
 | `sets` | The 4 studio sets (home page grid + blog sidebar) |
 | `bundles` | The 3 pricing bundles |
@@ -288,6 +288,27 @@ change it.
 Open **Content Manager** in your Wix dashboard, open the `why_aguyb`
 collection, change the `title` of the first row, save, then reload the
 live site, the "Why AGUYB" section updates with no code change needed.
+
+### Hero background: swap the photo, or add a video
+
+The very first section of the home page (the hero, "Jacksonville Top
+Podcast & Media Production Studio") now has its background image and an
+optional background video wired to the CMS too.
+
+1. Open **Content Manager** &rarr; `content_blocks` &rarr; the row where
+   `Block Key` = `home_hero`.
+2. **Background Image URL**: paste a link to any image (upload it to your
+   Wix Media Manager first, then copy its URL, or use any public image
+   URL). This is what visitors see, and what shows before a video loads.
+3. **Background Video URL**: optional. Paste a link to an `.mp4` (upload
+   it to Wix Media Manager, copy the file URL). If this is filled in, it
+   plays automatically, muted, looping, on top of the background image as
+   soon as the page loads, no code change needed. Leave it blank to keep
+   just the still image.
+
+The video always plays muted (autoplay policies in every browser require
+this) and silently falls back to the still image if the video fails to
+load or the browser blocks autoplay.
 
 ## Real booking: pick an hour, see real availability, pay on Wix
 

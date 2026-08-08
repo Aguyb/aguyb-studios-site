@@ -314,6 +314,17 @@ h1, h2, h3, h4 {
   background: var(--bg-deep);
   opacity: 0.78;
 }
+.hero-bg video {
+  /* CMS-managed background video (Wix Data: content_blocks -> home_hero ->
+     Background Video URL). Sits above the background-image, below the
+     ::after contrast wash and the hero content, so text stays readable. */
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
 .hero-grid {
   /* Decorative grid removed along with all gradients/masks; element kept
      in the markup as a no-op so no HTML edits were needed across pages. */
