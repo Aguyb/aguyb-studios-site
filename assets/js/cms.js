@@ -466,7 +466,9 @@
         const isMonthly = /month/i.test(b.period || "");
         const priceHtml = isMonthly ? `${esc(b.price)}<span>/mo</span>` : esc(b.price);
         const featureLines = (b.features || "").split("\n").filter(Boolean);
-        const ctaLabel = b.bookingParam === "corporate-partner" ? "Talk to Our Team" : "Book This Bundle";
+        const cta = b.serviceId
+          ? `<button type="button" class="btn ${b.featured ? "btn-primary" : "btn-ghost"} btn-block" data-book-service-id="${esc(b.serviceId)}" data-book-service-name="${esc(b.name)} — ${esc(b.price)}">Check Availability &amp; Book</button>`
+          : `<a href="booking.html?bundle=${esc(b.bookingParam)}" class="btn ${b.featured ? "btn-primary" : "btn-ghost"} btn-block">${b.bookingParam === "corporate-partner" ? "Talk to Our Team" : "Book This Bundle"}</a>`;
         return `
           <div class="bundle-card glass${b.featured ? " featured" : ""}">
             ${b.badge ? `<div class="bundle-badge">${esc(b.badge)}</div>` : ""}
@@ -474,10 +476,11 @@
             <div class="bundle-price">${priceHtml}</div>
             <div class="bundle-cadence">${esc(b.period)}</div>
             <ul class="bundle-features">${featureLines.map((f) => `<li>${ICON_CHECK} ${esc(f)}</li>`).join("")}</ul>
-            <a href="booking.html?bundle=${esc(b.bookingParam)}" class="btn ${b.featured ? "btn-primary" : "btn-ghost"} btn-block">${ctaLabel}</a>
+            ${cta}
           </div>`;
       })
       .join("");
+    if (window.AguybBookingFlow) window.AguybBookingFlow.bindTriggers();
   }
 
   function renderReviews(reviews) {

@@ -291,7 +291,9 @@ live site, the "Why AGUYB" section updates with no code change needed.
 
 ## Real booking: pick an hour, see real availability, pay on Wix
 
-`pricing.html`'s 5 Studio Rental tiers (2/3/4/6/8 hours) are wired to your
+`pricing.html`'s 5 Studio Rental tiers (2/3/4/6/8 hours), and the home
+page's **Bundles** section (now the 2/4/8‑hour Studio Rental tiers, replacing
+the old Content Engine / Corporate Partner lead-gen cards) are wired to your
 **real** Wix Bookings services, prices and calendar, not a lead form. The
 flow, all handled by `assets/js/booking-flow.js`:
 
