@@ -180,6 +180,23 @@
   }
 
   // ---------- content blocks (headings/paragraphs/ctas) ----------
+  // The bgImageUrl/bgVideoUrl CMS fields are Wix Data IMAGE/VIDEO field
+  // types, so picking a file in the Wix dashboard's Media Manager (instead
+  // of pasting a URL) stores it as a Wix Media identifier, e.g.
+  // "wix:image://v1/<fileId>/<filename>#..." or "wix:video://v1/<fileId>/<filename>#...",
+  // not a plain web URL. This resolves either form (or a plain http(s) URL,
+  // still supported) to a real, publicly loadable URL.
+  function resolveWixMediaUrl(value) {
+    if (!value) return "";
+    if (/^https?:\/\//i.test(value)) return value; // already a plain web URL
+    const match = /^wix:(image|video):\/\/v1\/([^/]+)\//.exec(value);
+    if (!match) return value;
+    const fileId = match[2];
+    return match[1] === "image"
+      ? "https://static.wixstatic.com/media/" + fileId
+      : "https://video.wixstatic.com/video/" + fileId + "/file";
+  }
+
   // Applies a CMS-managed hero background: a video (if bgVideoUrl is set)
   // layered over the existing CSS background-image, or just a swapped-in
   // background image (bgImageUrl). Leaves the section alone if neither is set.
@@ -187,10 +204,12 @@
     const heroBg = document.querySelector(".hero-bg");
     if (!hero || !heroBg) return;
 
-    if (hero.bgImageUrl) heroBg.style.backgroundImage = "url('" + hero.bgImageUrl.replace(/'/g, "%27") + "')";
+    const imageUrl = resolveWixMediaUrl(hero.bgImageUrl);
+    if (imageUrl) heroBg.style.backgroundImage = "url('" + imageUrl.replace(/'/g, "%27") + "')";
 
+    const videoUrl = resolveWixMediaUrl(hero.bgVideoUrl);
     let video = heroBg.querySelector("video");
-    if (hero.bgVideoUrl) {
+    if (videoUrl) {
       if (!video) {
         video = document.createElement("video");
         video.muted = true;
@@ -201,9 +220,9 @@
         video.setAttribute("aria-hidden", "true");
         heroBg.insertBefore(video, heroBg.firstChild);
       }
-      if (hero.bgImageUrl) video.setAttribute("poster", hero.bgImageUrl);
-      if (video.getAttribute("src") !== hero.bgVideoUrl) {
-        video.setAttribute("src", hero.bgVideoUrl);
+      if (imageUrl) video.setAttribute("poster", imageUrl);
+      if (video.getAttribute("src") !== videoUrl) {
+        video.setAttribute("src", videoUrl);
         video.load();
       }
       video.play().catch(() => {}); // ignore autoplay-blocked errors; poster/image still shows
