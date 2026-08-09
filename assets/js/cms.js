@@ -747,8 +747,13 @@
     if (post.body && bodyEl) {
       bodyEl.innerHTML = post.body
         .split("\n\n")
+        .map((block) => block.trim())
         .filter(Boolean)
-        .map((para) => `<p>${esc(para)}</p>`)
+        .map((block) =>
+          block.startsWith("## ")
+            ? `<h3>${esc(block.slice(3))}</h3>`
+            : `<p>${esc(block)}</p>`
+        )
         .join("");
     }
 

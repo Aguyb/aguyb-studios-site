@@ -99,11 +99,11 @@ menu earlier (940px instead of 760px) and tightens its spacing between
 6. **Replace contact placeholders.** `hello@aguybstudios.com` and
    `(904) 555-1234` are placeholders, swap for the real studio contact details.
 
-7. **Blog posts are placeholders without article pages yet.** `blog.html` is
-   the index/listing layout with six placeholder posts; their "Read More"
-   links are inert (`href="#"`) since no individual article template exists
-   yet. Building an `article.html` template (or a per-post file) is the next
-   step once you have real posts to publish.
+7. **Blog now shows your real, published posts.** `blog.html` and the 9
+   pages under `/articles/` were regenerated from the actual posts already
+   published on your live Wix Blog (aguybstudios.com), not placeholders.
+   See "Blog: full article pages, not just cards" below for how to edit
+   them going forward.
 
 8. **On-Site page content is adapted from reference copy.** The "Shows We
    Recorded On Site" badges and "Featured Projects" thumbnails on
@@ -259,7 +259,7 @@ breaks.
 | `onsite_packages` | The hourly rate plus the 2-hour and 3-hour offsite packages |
 | `coverage_areas` | The 6 coverage-area tags |
 | `faq_items` | All 17 FAQ questions and answers |
-| `blog_posts` | The 6 blog post cards, and the full article page each one links to (see below) |
+| `blog_posts` | The 9 real posts imported from your live Wix Blog, and the full article page each one links to (see below) |
 | `site_settings` | Email, phone, city, and social links (Instagram/LinkedIn/YouTube), used sitewide |
 
 Every collection is set to public read (`ANYONE`) so visitors can load it,
@@ -336,26 +336,45 @@ The video always plays muted (autoplay policies in every browser require
 this) and silently falls back to the still image if the video fails to
 load or the browser blocks autoplay.
 
-## Blog: full article pages, not just cards
+## Blog: your real posts, imported from Wix Blog
 
-Every blog post card on `blog.html` now links to a real, complete article
-page under `/articles/`, each one built with the same visual style as the
-rest of the site, not a stub. Each article page has:
+`blog_posts` now holds the 9 real posts already published on your live
+Wix Blog (the same `aguybstudios.com` site used as this project's CMS
+backend), imported via the Wix Blog Posts API and converted from their
+rich-content format into clean article text. These replaced the earlier
+placeholder examples entirely, both the `blog.html` cards and every page
+under `/articles/` are built from this real content:
 
-- The full article text (several real, on-topic paragraphs, not a
-  placeholder excerpt).
+- AGUYB Studios: Jacksonville's Full-Service Video Production & Podcast Studio
+- Jacksonville's #1 Podcast Studio for 4K Video Production & Content Creation
+- How to Choose the Best Podcast Studio for Renting Podcast Studios
+- Proven Podcast Recording Quality Tips for Clear, Engaging Audio
+- The Ultimate Content Marketing Comprehensive Guide for 2023
+- Discover Top Content Marketing Tools to Boost Your Strategy
+- Essential Video Production Tools for Stunning Visual Content
+- Beginner-Friendly Video Production Tips
+- How to Start a Podcast in Jacksonville, FL (2025 Guide)
+
+Every blog post card on `blog.html` links to a complete article page under
+`/articles/`, built with the same visual style as the rest of the site.
+Each article page has:
+
+- The full article text, including the original headings, pulled straight
+  from the Wix Blog post.
 - A **Recommended Video** card inside the article that opens in the site's
-  existing video lightbox when clicked.
+  existing video lightbox when clicked. Since none of the 9 imported posts
+  had a video attached in Wix Blog, each one currently points at a
+  placeholder clip (`assets/video/reel-0N.mp4`) with a topic-appropriate
+  caption, swap in a real clip any time via the CMS.
 - A sticky sidebar with a **Book Your Session** button, links to 3 other
   articles, and the same "Explore Our Sets" block as the blog list page.
 
-All 6 are editable from the same `blog_posts` collection you already use
-for the cards, it now also has:
+All 9 are editable from the `blog_posts` collection in your Wix dashboard:
 
 | Field | Powers |
 |---|---|
 | `slug` | The article's URL, e.g. `slug: my-post` &rarr; `articles/my-post.html` |
-| `body` | The full article text. Separate paragraphs with a blank line between them in the Content Manager, each becomes its own paragraph on the page. |
+| `body` | The full article text. Separate paragraphs with a blank line between them in the Content Manager; a line starting with `## ` becomes a heading, everything else becomes a paragraph. |
 | `author` | Byline shown under the title |
 | `videoCaption` | Title shown on the Recommended Video card |
 | `videoUrl` | The Recommended Video itself, a real Media Manager picker field just like the hero background video, upload or pick a clip from Wix, or leave empty to keep the placeholder |
@@ -366,7 +385,7 @@ load, the same progressive-enhancement pattern as the rest of the site,
 the static article text is a complete real fallback, the CMS only
 overwrites it if you've since changed something in the dashboard.
 
-**Adding a brand-new 7th post** isn't fully automatic yet, adding a row to
+**Adding a brand-new 10th post** isn't fully automatic yet, adding a row to
 `blog_posts` will make it appear as a card on `blog.html`, but its
 `articles/<slug>.html` page needs to be built once (it's a small, fast
 follow-up, ask any time you add a new post and want its page live).

@@ -964,6 +964,8 @@ h1, h2, h3, h4 {
 .article-body { font-size: 15.5px; line-height: 1.85; color: var(--text-2); }
 .article-body p { margin-bottom: 22px; }
 .article-body p:first-of-type { font-size: 17px; color: var(--text-1); }
+.article-body h3 { font-size: 20px; color: var(--text-1); margin: 36px 0 14px; line-height: 1.3; }
+.article-body h3:first-child { margin-top: 0; }
 
 .article-video-card {
   display: flex; gap: 18px; align-items: center;
