@@ -904,7 +904,13 @@
   // before this file has replaced any innerHTML. Re-run the same lightweight
   // bindings here for any elements this file just created.
   function rebindInteractivity() {
-    document.querySelectorAll(".acc-header").forEach((header) => {
+    // Same [data-acc-bound] guard main.js uses: without it, any accordion
+    // header still standing from the static fallback (CMS query failed or
+    // was blocked) would get a second click listener here, and the two
+    // listeners firing on the same click would cancel each other out
+    // (open, then immediately re-close).
+    document.querySelectorAll(".acc-header:not([data-acc-bound])").forEach((header) => {
+      header.dataset.accBound = "1";
       header.addEventListener("click", () => {
         const item = header.closest(".acc-item");
         const list = header.closest(".acc-list");
@@ -920,24 +926,15 @@
       });
     });
 
-    const lightbox = document.getElementById("lightbox");
-    const lightboxVideo = document.getElementById("lightboxVideo");
-    const lightboxCaption = document.getElementById("lightboxCaption");
-    if (lightbox && lightboxVideo) {
-      document.querySelectorAll("[data-video]").forEach((trigger) => {
-        if (trigger.dataset.cmsBound) return;
-        trigger.dataset.cmsBound = "1";
-        trigger.addEventListener("click", (e) => {
-          e.preventDefault();
-          if (trigger.dataset.video) lightboxVideo.setAttribute("src", trigger.dataset.video);
-          if (trigger.dataset.poster) lightboxVideo.setAttribute("poster", trigger.dataset.poster);
-          lightboxCaption.textContent = trigger.dataset.caption || "";
-          lightbox.classList.add("active");
-          document.body.style.overflow = "hidden";
-          lightboxVideo.play().catch(() => {});
-        });
-      });
-    }
+    // Delegates to main.js's own lightbox binder (window.AguybLightbox),
+    // which already guards against double-binding via [data-video-bound]
+    // and correctly handles vertical-video framing (data-vertical="true",
+    // used by the short-form clips track). This used to be a second,
+    // separately-guarded copy of the same binding logic that didn't know
+    // about main.js's guard flag, so every [data-video] trigger on any
+    // CMS-enabled page ended up with two click listeners (one here, one in
+    // main.js) and this copy silently dropped the vertical-video handling.
+    if (window.AguybLightbox) window.AguybLightbox.bindTriggers();
 
     document.querySelectorAll(".reveal").forEach((el) => el.classList.add("in-view"));
 

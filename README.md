@@ -689,3 +689,50 @@ and `robots.txt`.
 - **Still open**: the Reviews section is still 3 placeholder testimonials
   (see "Before this goes live" above), and no live chat or secondary
   (lighter-weight) lead capture exists yet.
+
+## Backend/frontend consistency check (Wix Data → cms.js → DOM)
+
+A full audit of every `queryCollection()` call in `cms.js` against the
+real Wix Data collections and the DOM selectors each render function
+targets, since it's easy for a fix made in the static HTML fallback to
+drift out of sync with the Wix Data row that overwrites it at runtime.
+Two categories of real bugs turned up and were fixed:
+
+**Stale data in Wix Data itself, silently overwriting a static-HTML
+fix.** `content_blocks` still had `ctaUrl: "booking.html"` on 6 rows
+(`home_hero`, `final_cta_home`, `sets_hero`, `sets_final_cta`,
+`faq_final_cta`, `blog_sidebar_cta`) from before the sitewide
+Book‑Your‑Session→`pricing.html` change, `fillCtas()` would have
+silently written the dead link straight back into those buttons on
+every page load. Fixed in Wix Data (all 6 now point at `pricing.html`,
+`pricing_final_cta` now points at `#pricing-tiers` matching the static
+fix). `site_settings.phone` was missing its hyphen
+(`renderSiteSettings()` overwrites the footer/FAQ phone text with this
+value verbatim) and `site_settings.linkedinUrl` was still the private
+admin-dashboard URL, both fixed at the source. On‑site production's
+`ctaUrl: "booking.html?bundle=on-site"` (2 rows) was left alone, that's
+intentionally still a lead form, not a live-booking flow.
+
+**A real JS bug in `cms.js` itself**: `rebindInteractivity()` had its
+own copies of the video-lightbox and accordion click-binding logic,
+each using a different (or no) "already bound" guard than the original
+binding in `main.js`. On any page where a CMS fetch fails or is
+blocked (offline, ad blocker, flaky connection) the static fallback
+accordion/video elements are left in place and got bound a second
+time, two listeners firing on one click made the FAQ/"What We Build"
+accordion silently stop responding (open, then immediately re-close)
+and double-fired the video lightbox open logic. Fixed by giving both
+`main.js`'s and `cms.js`'s accordion binder the same
+`[data-acc-bound]` guard, and having `cms.js` delegate video-trigger
+binding to `window.AguybLightbox.bindTriggers()` (which already has its
+own `[data-video-bound]` guard and, unlike the old duplicate, correctly
+handles vertical-video framing) instead of re-implementing it.
+
+Verified as correct, no changes needed: all 16 Wix Data collections
+`cms.js` queries exist with the expected fields, `sets`'s `bookingParam`
+for Event Filming is exactly `"event-filming"` (matching the hardcoded
+`SET_LIVE_SERVICES` lookup key), `pricing_tiers` (5 items) and `bundles`
+(4 items) match the static HTML exactly, and every render function's
+target selector (`#bundles .bundles-grid`, `#reviews .reviews-grid`,
+`#guestsGrid`, `.coverage-list`, etc.) exists on the page it's meant
+for.

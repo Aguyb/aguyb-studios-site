@@ -89,7 +89,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ---------- Services accordion ("What We Build") ----------
-  document.querySelectorAll('.acc-header').forEach(header => {
+  // Guarded with a bound-flag: cms.js re-runs this same binding after it
+  // replaces (or, on a failed/blocked CMS fetch, leaves untouched) the
+  // accordion markup, so without the guard a header that's still the
+  // original static one would get two click listeners and the toggle
+  // would silently cancel itself out (open then immediately re-close).
+  document.querySelectorAll('.acc-header:not([data-acc-bound])').forEach(header => {
+    header.dataset.accBound = '1';
     header.addEventListener('click', () => {
       const item = header.closest('.acc-item');
       const list = header.closest('.acc-list');
