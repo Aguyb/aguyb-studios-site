@@ -33,6 +33,22 @@
     { id: "7f4c8aa1-3be7-4412-bb6f-13ae612f29ef", name: "Graphics motion (once)", price: 200 }
   ];
 
+  // The add-ons above only exist on the "Studio Rental Weekday" add-on
+  // group, shared by the 5 hourly Studio Rental services. Any other
+  // service (e.g. Event Filming) has no add-ons configured in Wix, so it
+  // gets an empty list here, step 2 is skipped automatically for those.
+  const STUDIO_RENTAL_SERVICE_IDS = new Set([
+    "017a2b16-10ea-4e27-bc5d-04821361e2ff", // 1 Hour (hidden)
+    "b77a785e-e00a-4e90-9903-015f8c53197c", // 2 Hours
+    "eb75d42d-cb6e-4db8-99f8-56a71eaddae6", // 3 Hours
+    "fbf025db-90ac-4ae4-a955-96c4d5c807af", // 4 Hours
+    "826cd5d0-0f36-4cd8-9821-4e5cbdb778a2", // 6 Hours
+    "4668ec4f-7cdd-49c4-ae39-ec87cc04328d"  // Full Day (8 Hours)
+  ]);
+  function addonsForService(serviceId) {
+    return STUDIO_RENTAL_SERVICE_IDS.has(serviceId) ? ADDONS : [];
+  }
+
   let tokenPromise = null;
   function getVisitorToken() {
     if (!tokenPromise) {
@@ -321,7 +337,9 @@
           slotsEl.querySelectorAll(".booking-slot-btn").forEach((b) => b.classList.remove("is-selected"));
           btn.classList.add("is-selected");
           selectedSlot = slot;
-          goToStep(2);
+          // Skip the add-ons step entirely for services with no add-ons
+          // configured in Wix (e.g. Event Filming), nothing to choose from.
+          goToStep(addonsForService(activeServiceId).length ? 2 : 3);
         });
         slotsEl.appendChild(btn);
       });
@@ -335,14 +353,20 @@
   // ---------- step 2: add-ons ----------
   function currentTotal() {
     let total = activeBasePrice;
-    ADDONS.forEach((a) => {
+    addonsForService(activeServiceId).forEach((a) => {
       if (selectedAddOnIds.has(a.id)) total += a.price;
     });
     return total;
   }
 
   function renderAddonsStep() {
-    addonsListEl.innerHTML = ADDONS.map(
+    const addons = addonsForService(activeServiceId);
+    if (!addons.length) {
+      addonsListEl.innerHTML = '<p class="booking-step-intro">No extras are configured for this service.</p>';
+      totalValueEl.textContent = money(currentTotal());
+      return;
+    }
+    addonsListEl.innerHTML = addons.map(
       (a) => `
         <label class="booking-addon-row">
           <span class="booking-addon-check">
@@ -375,7 +399,7 @@
       rows.push({ label: "Time", value: formatTime(selectedSlot.localStartDate) });
     }
     rows.push({ label: "Base rate", value: money(activeBasePrice) });
-    const chosenAddons = ADDONS.filter((a) => selectedAddOnIds.has(a.id));
+    const chosenAddons = addonsForService(activeServiceId).filter((a) => selectedAddOnIds.has(a.id));
     if (chosenAddons.length) {
       chosenAddons.forEach((a) => rows.push({ label: a.name, value: "+" + money(a.price) }));
     } else {

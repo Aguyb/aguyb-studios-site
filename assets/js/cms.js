@@ -520,13 +520,28 @@
       .join("");
   }
 
+  // Only "Event Filming" currently exists as a real, separately-priced Wix
+  // Bookings service. The other sets are room configurations bookable at
+  // the standard hourly Studio Rental rate, not their own line item, so
+  // their "Book This Set" sends visitors to pricing.html (the real booking
+  // system) instead of faking a mismatched price in the live modal. If you
+  // create dedicated Wix services for those sets later, add them here.
+  const SET_LIVE_SERVICES = {
+    "event-filming": { id: "713f9b3d-8419-454c-9730-f26bec6b8684", price: 450 }
+  };
+
   function renderSets(sets) {
     if (!sets) return;
     const grid = document.querySelector("#sets .sets-grid");
     if (grid) {
       grid.innerHTML = sets
         .sort((a, b) => (a.order || 0) - (b.order || 0))
-        .map((s) => `
+        .map((s) => {
+          const live = SET_LIVE_SERVICES[s.bookingParam];
+          const cta = live
+            ? `<button type="button" class="btn btn-ghost btn-sm btn-block" data-book-service-id="${esc(live.id)}" data-book-service-name="${esc(s.name)}, $${live.price}" data-book-price="${live.price}" data-book-desc="${esc(s.description)}">Book This Set</button>`
+            : `<a href="pricing.html" class="btn btn-ghost btn-sm btn-block">Book This Set</a>`;
+          return `
           <div class="set-card">
             <div class="set-media">
               <img src="${esc(s.posterImage)}" alt="${esc(s.name)}">
@@ -537,10 +552,12 @@
             <div class="set-body">
               <h4>${esc(s.name)}</h4>
               <p>${esc(s.description)}</p>
-              <div class="set-actions"><a href="booking.html?set=${esc(s.bookingParam)}" class="btn btn-ghost btn-sm btn-block">Book This Set</a></div>
+              <div class="set-actions">${cta}</div>
             </div>
-          </div>`)
+          </div>`;
+        })
         .join("");
+      if (window.AguybBookingFlow) window.AguybBookingFlow.bindTriggers();
     }
     const sidebarSets = document.querySelector(".sidebar-sets");
     if (sidebarSets) {
@@ -1004,9 +1021,13 @@
         renderSets(sets);
         renderNotableGuests(guests);
       } else if (PAGE === "pricing") {
-        const pricingTiers = await queryCollection("pricing_tiers", "order");
+        const [pricingTiers, bundles] = await Promise.all([
+          queryCollection("pricing_tiers", "order"),
+          queryCollection("bundles", "order")
+        ]);
         if (contentBlocks) renderContentBlocksPricing(contentBlocks);
         renderPricingTiers(pricingTiers);
+        renderBundles(bundles);
       } else if (PAGE === "article") {
         const slug = document.body.getAttribute("data-post-slug");
         if (slug) {

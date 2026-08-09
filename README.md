@@ -26,7 +26,15 @@ aguyb-studios-site/
 └── README.md
 ```
 
-Top navigation: What We Build, Sets, On-Site, Bundles, Blog, FAQ, Contact.
+Top navigation: What We Build, Sets, On-Site, Pricing, Blog, FAQ, Contact.
+**Bundles was removed from the nav menu** (both the static HTML on every
+page and the `nav_links` Wix Data collection), the `#bundles` section
+itself still lives on the home page and is still reachable by scroll or
+direct link, and now also appears at the bottom of `pricing.html`, it's
+just not a top-level nav item anymore. Every generic **"Book Your
+Session"** button sitewide (nav, hero, footers, article sidebars) now
+points at `pricing.html`, the page with real Wix availability, instead of
+the old lead-gen `booking.html` form.
 **Sets now links to its own dedicated page (`sets.html`)** instead of
 anchoring back to the home page, the home page still has its own Sets
 teaser section too, both stay in sync from the same `sets` collection.
@@ -41,8 +49,8 @@ menu earlier (940px instead of 760px) and tightens its spacing between
 - Hero with a "Book Your Session" and "Studio Tour" CTA
 - A sliding, auto-scrolling carousel of past podcast episodes (second section, click any cover to watch)
 - "What We Build": an expandable accordion list instead of static cards, click a service to read the description
-- "Sets": the four studio sets, each with its own preview video and a "Book This Set" link. Also has its own full page (`sets.html`) with the same 4 sets plus a "Notable Guests Who've Stepped Into the Studio" photo gallery
-- "Bundles": four real package deals (studio hours + real add-ons, priced below buying separately), each books the matching hourly service with real Wix availability
+- "Sets": the four studio sets, each with its own preview video and a "Book This Set" button. On Event Filming, that button opens the real availability/booking modal (it's the only set with a matching live Wix Bookings service today), the other 3 sets link to `pricing.html` instead of a lead form, see "Book This Set: what's really live" below
+- "Bundles": four real package deals (studio hours + real add-ons, priced below buying separately), each books the matching hourly service with real Wix availability. Lives on the home page (`#bundles`) and at the bottom of `pricing.html`
 - "Reviews": a placeholder testimonial grid, ready to swap for real client feedback
 - A contact form (name, company, phone, email, project type, project details, and a subscribe checkbox) plus a dedicated booking page with its own request form
 - `on-site-production.html`: a full page for the "we come to you" service, pricing, how it works, and a coverage-area panel
@@ -519,11 +527,12 @@ follow-up, ask any time you add a new post and want its page live).
 
 ## Real booking: pick a time, choose add‑ons, review, pay on Wix
 
-`pricing.html`'s 5 Studio Rental tiers (2/3/4/6/8 hours), and the home
-page's **Bundles** section (4 real hours‑plus‑add‑ons packages, see below)
-are wired to your **real** Wix Bookings services, prices and calendar, not
-a lead form. Clicking **Check Availability & Book** opens a guided 3‑step
-modal, all handled by `assets/js/booking-flow.js`:
+`pricing.html`'s 5 Studio Rental tiers (2/3/4/6/8 hours), the **Bundles**
+section (4 real hours‑plus‑add‑ons packages, see below, shown on both the
+home page and the bottom of `pricing.html`), and the Event Filming set on
+`sets.html` are wired to your **real** Wix Bookings services, prices and
+calendar, not a lead form. Clicking **Check Availability & Book** opens a
+guided 3‑step modal, all handled by `assets/js/booking-flow.js`:
 
 **Step 1, Time.** A date picker calls Wix Bookings' real-time Availability
 API for that exact service and shows the real open time slots for that
@@ -610,6 +619,23 @@ add them to that add-on group in Wix first, or handle that piece manually.
   Way). The final checkout redirect uses the same visitor-token pattern as
   the rest of the site and should be smoke-tested once live by actually
   clicking through to Wix's checkout page.
-- The other CTAs on the site (Bundles, On-Site packages, the general
-  Booking form) are unaffected, they're not schedulable Wix Bookings
-  services, so they still use the lead-gen form described above.
+- On-Site packages and the general Booking form (`booking.html`) are
+  unaffected, they're not schedulable Wix Bookings services, so they still
+  use the lead-gen form. Bundles, by contrast, **are** wired to real
+  availability now (see above).
+
+### Book This Set: what's really live
+
+Only **Event Filming** (`713f9b3d-8419-454c-9730-f26bec6b8684`, $450) has
+a matching real Wix Bookings service among the 4 "sets" on `sets.html`.
+Its "Book This Set" button opens the same real 3‑step availability modal
+used everywhere else. There is no Wix service today named "Executive
+Podcast Suite," "Rustic Podcast Set," or "Recording + Live Mix Session,"
+the `sets` collection itself has no `serviceId` field at all, so rather
+than guess a stand‑in service (which would show the client the wrong
+price or the wrong equipment list), those 3 buttons link to `pricing.html`
+instead. If you want genuine live availability for all 4 sets, the fix is
+to create 3 more bookable services in Wix Bookings (one per set, priced
+and add‑on'd the way you want) and add a `serviceId` field to the `sets`
+collection, ask any time and this can be wired the same way Event Filming
+is now.
