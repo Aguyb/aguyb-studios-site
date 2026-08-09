@@ -42,7 +42,7 @@ menu earlier (940px instead of 760px) and tightens its spacing between
 - A sliding, auto-scrolling carousel of past podcast episodes (second section, click any cover to watch)
 - "What We Build": an expandable accordion list instead of static cards, click a service to read the description
 - "Sets": the four studio sets, each with its own preview video and a "Book This Set" link. Also has its own full page (`sets.html`) with the same 4 sets plus a "Notable Guests Who've Stepped Into the Studio" photo gallery
-- "Bundles": three priced packages (Starter Session, Content Engine, Corporate Partner), each links to the booking page pre-filtered
+- "Bundles": four real package deals (studio hours + real add-ons, priced below buying separately), each books the matching hourly service with real Wix availability
 - "Reviews": a placeholder testimonial grid, ready to swap for real client feedback
 - A contact form (name, company, phone, email, project type, project details, and a subscribe checkbox) plus a dedicated booking page with its own request form
 - `on-site-production.html`: a full page for the "we come to you" service, pricing, how it works, and a coverage-area panel
@@ -83,11 +83,13 @@ menu earlier (940px instead of 760px) and tightens its spacing between
    in the lightbox (`index.html` and `booking.html`) for an `<iframe>` and
    update `openLightbox()` in `main.js` accordingly.
 
-3. **Confirm bundle pricing.** The three bundle prices ($597 one-time, $1,950/mo,
-   and $3,800/mo starting) are a starting-point recommendation based on typical
-   market rates for this kind of studio, not your real numbers. Review and
-   adjust them in the "Bundles" section of `index.html` and in the "Preferred
-   Bundle" dropdown in `booking.html` before publishing.
+3. **Bundle pricing is real.** ~~The three bundle prices...~~ superseded: the
+   4 bundles in the "Bundles" section (Quick Content Session $499, Podcast
+   Launch Bundle $1,249, Executive Interview Bundle $929, Full Production Day
+   $1,499) are built from your actual Studio Rental hourly rates and actual
+   Wix Bookings add-on prices, priced roughly 11–15% below buying the same
+   hours and add-ons separately. See "Bundles: real packages, not made-up
+   numbers" below for the math and how to edit them.
 
 4. **Replace the review placeholders.** The three cards in "Reviews" are
    written as realistic examples, not real client quotes. Swap them for real
@@ -256,7 +258,8 @@ breaks.
 | `content_blocks` | Every eyebrow / headline / paragraph / button pair, keyed by a `blockKey` per section (e.g. `home_hero`, `onsite_coverage`, `faq_final_cta`, `sets_hero`). Several rows also have **Background Image** and/or **Background Video** media-picker fields: `home_hero` and `onsite_hero` (page hero backgrounds), and `philosophy` / `onsite_what_it_is` (the photo next to the "Why It Works" / "What This Service Is" text). See below. |
 | `services` | The "What We Build" accordion on the home page |
 | `sets` | The 4 studio sets (home page grid, `sets.html`, and blog sidebar) |
-| `bundles` | The 3 pricing bundles |
+| `bundles` | The 4 real hours-plus-add-ons bundles on the home page, see below |
+| `pricing_tiers` | The 5 plain Studio Rental hourly tiers on `pricing.html` |
 | `reviews` | The 3 testimonial cards |
 | `recent_work` | "Podcasts We've Produced," the reel at the top of the home page, see below |
 | `shortform_clips` | The short-form clip slideshow, now directly under "Why It Works" on the home page, see below |
@@ -517,10 +520,9 @@ follow-up, ask any time you add a new post and want its page live).
 ## Real booking: pick an hour, see real availability, pay on Wix
 
 `pricing.html`'s 5 Studio Rental tiers (2/3/4/6/8 hours), and the home
-page's **Bundles** section (now the 2/4/8‑hour Studio Rental tiers, replacing
-the old Content Engine / Corporate Partner lead-gen cards) are wired to your
-**real** Wix Bookings services, prices and calendar, not a lead form. The
-flow, all handled by `assets/js/booking-flow.js`:
+page's **Bundles** section (4 real hours‑plus‑add‑ons packages, see below)
+are wired to your **real** Wix Bookings services, prices and calendar, not
+a lead form. The flow, all handled by `assets/js/booking-flow.js`:
 
 1. Visitor clicks **Check Availability & Book** on a tier.
 2. A panel opens with a date picker. Selecting a date calls Wix Bookings'
@@ -537,6 +539,42 @@ flow, all handled by `assets/js/booking-flow.js`:
 This site never sees or touches card details at any point, the last step
 before payment is always a redirect to a real `wixapis.com`/Wix-hosted
 URL.
+
+### Bundles: real packages, not made-up numbers
+
+The 4 cards in the home page's **Bundles** section aren't placeholder
+pricing, they're built from two real sources in your Wix Bookings account:
+the actual hourly Studio Rental rates ($399/2hr, $499/3hr, $599/4hr,
+$799/6hr, $999/8hr) and the actual add-ons already attached to those
+services (Additional Camera $40, Teleprompter $36, Producer on Set $70,
+Video Editing per episode $250, Subtitles $120, Graphics Motion $200).
+Each bundle's price is the sum of its real components minus roughly
+11–15%, shown to the client as "Save $X vs. booking separately."
+
+| Bundle | Built from | Price | Savings |
+|---|---|---|---|
+| Quick Content Session | 2hr + camera + subtitles | $499 | $60 |
+| Podcast Launch Bundle | 4hr + 2× edit + subtitles + graphics | $1,249 | $170 |
+| Executive Interview Bundle | 3hr + teleprompter + producer + edit + graphics | $929 | $126 |
+| Full Production Day | 8hr + producer + camera + teleprompter + 2× edit + subtitles | $1,499 | $266 |
+
+Each card's `serviceId` points at the underlying hourly Studio Rental
+service, so "Check Availability & Book" opens real availability for that
+many hours. The add-ons listed in each bundle are already wired into that
+service's online booking form in Wix (the "Studio Rental Weekday" add-on
+group), so the client sees and can select them at checkout, this page just
+tells them which combination is the bundle they're paying for.
+
+To add, remove, or reprice a bundle, edit the `bundles` collection in the
+Content Manager: `name`, `tagline` (one-line description), `price` (string,
+e.g. `"$929"`), `period` (duration label), `features` (newline-separated
+list), `savingsLabel`, `badge` (optional, e.g. "Most Popular"), `featured`
+(true/false, highlights the card), `serviceId` (the Wix Bookings service ID
+to book), and `order`. If you add a fee outside the current add-on catalog
+(Remote Guest, Podcast Branding, Jingle, etc.), note that those add-ons
+aren't currently attached to the Studio Rental services' online booking
+form, so they won't show up for the client to self-select, you'd need to
+add them to that add-on group in Wix first, or handle that piece manually.
 
 - The GitHub Pages domain (`aguyb.github.io`) is registered as an allowed
   redirect domain on the same headless OAuth client used everywhere else

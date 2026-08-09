@@ -565,8 +565,10 @@
           <div class="bundle-card glass${b.featured ? " featured" : ""}">
             ${b.badge ? `<div class="bundle-badge">${esc(b.badge)}</div>` : ""}
             <div class="bundle-name">${esc(b.name)}</div>
+            ${b.tagline ? `<p class="bundle-desc">${esc(b.tagline)}</p>` : ""}
             <div class="bundle-price">${priceHtml}</div>
             <div class="bundle-cadence">${esc(b.period)}</div>
+            ${b.savingsLabel ? `<div class="bundle-savings">${esc(b.savingsLabel)}</div>` : ""}
             <ul class="bundle-features">${featureLines.map((f) => `<li>${ICON_CHECK} ${esc(f)}</li>`).join("")}</ul>
             ${cta}
           </div>`;
