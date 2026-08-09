@@ -64,6 +64,13 @@
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
     }[c]));
   }
+  // Strips "$", commas, "/mo" etc. down to a bare number for the booking
+  // modal's data-book-price attribute (the modal computes add-on totals
+  // client-side, so it needs a plain number, not a formatted price string).
+  function priceNum(val) {
+    const n = Number(String(val == null ? "" : val).replace(/[^0-9.]/g, ""));
+    return isNaN(n) ? "" : n;
+  }
   const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>';
   const ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>';
   const ICON_STAR = '<svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8-6.2 3.8 1.6-7L2 9.2l7.1-.6z"></path></svg>';
@@ -559,7 +566,7 @@
         const priceHtml = isMonthly ? `${esc(b.price)}<span>/mo</span>` : esc(b.price);
         const featureLines = (b.features || "").split("\n").filter(Boolean);
         const cta = b.serviceId
-          ? `<button type="button" class="btn ${b.featured ? "btn-primary" : "btn-ghost"} btn-block" data-book-service-id="${esc(b.serviceId)}" data-book-service-name="${esc(b.name)} — ${esc(b.price)}">Check Availability &amp; Book</button>`
+          ? `<button type="button" class="btn ${b.featured ? "btn-primary" : "btn-ghost"} btn-block" data-book-service-id="${esc(b.serviceId)}" data-book-service-name="${esc(b.name)} — ${esc(b.price)}" data-book-price="${priceNum(b.price)}" data-book-desc="${esc(b.tagline || "")}">Check Availability &amp; Book</button>`
           : `<a href="booking.html?bundle=${esc(b.bookingParam)}" class="btn ${b.featured ? "btn-primary" : "btn-ghost"} btn-block">${b.bookingParam === "corporate-partner" ? "Talk to Our Team" : "Book This Bundle"}</a>`;
         return `
           <div class="bundle-card glass${b.featured ? " featured" : ""}">
@@ -869,7 +876,7 @@
           <div class="bundle-name">${esc(t.name)}</div>
           <div class="bundle-price">$${esc(t.price)}</div>
           <div class="bundle-cadence">${esc(t.durationLabel)} studio rental</div>
-          <button type="button" class="btn ${t.badge ? "btn-primary" : "btn-ghost"} btn-block" data-book-service-id="${esc(t.serviceId || "")}" data-book-service-name="${esc(t.name)} — $${esc(t.price)}">Check Availability &amp; Book</button>
+          <button type="button" class="btn ${t.badge ? "btn-primary" : "btn-ghost"} btn-block" data-book-service-id="${esc(t.serviceId || "")}" data-book-service-name="${esc(t.name)} — $${esc(t.price)}" data-book-price="${priceNum(t.price)}" data-book-desc="Full access to the studio: 3 cameras, wireless mics, full lighting. ${esc(t.durationLabel || "")}.">Check Availability &amp; Book</button>
         </div>`)
       .join("");
     if (window.AguybBookingFlow) window.AguybBookingFlow.bindTriggers();

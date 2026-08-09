@@ -1,14 +1,16 @@
 /* ==========================================================================
    AGUYB STUDIOS - Real Booking Flow (Wix Bookings + Headless Redirects)
    ==========================================================================
-   Lets a visitor pick an hour tier, see REAL available time slots pulled
-   live from Wix Bookings, and hand off to Wix's own secure, hosted
-   checkout page to add anything else on offer, fill in their details and
-   pay. This file never touches payment details itself: the very last
-   step is always a redirect to a real wixapis.com checkout URL, generated
-   fresh for that exact slot. Uses the same anonymous Wix Headless visitor
-   token pattern as main.js and cms.js. See README > "Book Now" for the
-   full explanation.
+   A 3-step guided flow: 1) pick a REAL available date/time pulled live from
+   Wix Bookings, 2) choose real add-ons (same ones configured on the
+   service in Wix, with live-updating pricing) to see an estimated total,
+   3) review a summary (service, date/time, extras, total) before handing
+   off to Wix's own secure, hosted checkout page to confirm the same
+   extras, fill in details and pay. This file never touches payment
+   details itself: the very last step is always a redirect to a real
+   wixapis.com checkout URL, generated fresh for that exact slot. Uses the
+   same anonymous Wix Headless visitor token pattern as main.js and
+   cms.js. See README > "Real booking" for the full explanation.
    ========================================================================== */
 
 (function () {
@@ -16,6 +18,20 @@
 
   const WIX_CLIENT_ID = "b21d16f1-0865-4b6c-82c9-8fc43d39c696";
   const SITE_TIMEZONE = "America/New_York";
+
+  // Real add-ons from the "Studio Rental Weekday" add-on group in Wix,
+  // shared by every Studio Rental hourly service this flow books. If you
+  // add/remove/reprice an add-on in Wix, update it here too, this list is
+  // shown for the visitor to plan their extras before checkout, where they
+  // confirm the same choices on Wix's own add-on selector.
+  const ADDONS = [
+    { id: "df3a4dbe-5b3c-4d5b-b97b-1bb1c24bc376", name: "Additional camera", price: 40 },
+    { id: "4fbc73a1-ddb0-4c31-bb87-3cba5da75752", name: "Teleprompter", price: 36 },
+    { id: "c7c2e415-5a84-4b1a-bff1-9f21d45ce299", name: "Producer on set", price: 70 },
+    { id: "b8382aac-dfc5-4cac-8d9f-6c7e0da1e930", name: "Subtitles", price: 120 },
+    { id: "c146e5d2-a15c-4deb-a3ab-abc9bdeaa13c", name: "Video editing (per episode)", price: 250 },
+    { id: "7f4c8aa1-3be7-4412-bb6f-13ae612f29ef", name: "Graphics motion (once)", price: 200 }
+  ];
 
   let tokenPromise = null;
   function getVisitorToken() {
@@ -91,6 +107,7 @@
     return data.redirectSession.fullUrl;
   }
 
+  // ---------- formatting helpers ----------
   function formatTime(localStartDate) {
     const [, timePart] = localStartDate.split("T");
     const [hStr, mStr] = timePart.split(":");
@@ -99,6 +116,13 @@
     h = h % 12;
     if (h === 0) h = 12;
     return h + ":" + mStr + " " + suffix;
+  }
+
+  function formatDateNice(localStartDate) {
+    const [datePart] = localStartDate.split("T");
+    const [y, m, d] = datePart.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
   }
 
   function todayISO() {
@@ -112,9 +136,29 @@
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   }
 
+  function parsePrice(val) {
+    const n = Number(String(val == null ? "" : val).replace(/[^0-9.]/g, ""));
+    return isNaN(n) ? 0 : n;
+  }
+
+  function money(n) {
+    return "$" + n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+  }
+
   // ---------- modal ----------
-  let modalEl, titleEl, dateInputEl, findBtnEl, slotsEl, statusEl, closeBtnEl;
+  let modalEl, titleEl, descEl, statusEl, closeBtnEl;
+  let dateInputEl, findBtnEl, slotsEl;
+  let addonsListEl, totalValueEl, totalValue2El;
+  let reviewNameEl, reviewDescEl, reviewRowsEl;
+  let checkoutBtnEl, checkoutStatusEl;
+  let stepDots = [];
+
   let activeServiceId = null;
+  let activeServiceName = "";
+  let activeBasePrice = 0;
+  let activeServiceDesc = "";
+  let selectedSlot = null;
+  let selectedAddOnIds = new Set();
 
   function buildModal() {
     if (modalEl) return;
@@ -125,24 +169,73 @@
       '  <button class="booking-modal-close" aria-label="Close">' +
       '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>' +
       "  </button>" +
-      '  <div class="eyebrow">Check Real Availability</div>' +
+      '  <div class="eyebrow">Book Your Session</div>' +
       '  <h3 class="booking-modal-title"></h3>' +
-      '  <div class="booking-modal-row">' +
-      '    <input type="date" class="booking-date-input">' +
-      '    <button class="btn btn-primary btn-sm booking-find-btn">Find Times</button>' +
+      '  <p class="booking-modal-desc"></p>' +
+      '  <div class="booking-stepper">' +
+      '    <div class="booking-step-dot is-active" data-step="1"><span>1</span><small>Time</small></div>' +
+      '    <div class="booking-step-track"></div>' +
+      '    <div class="booking-step-dot" data-step="2"><span>2</span><small>Add&#8209;Ons</small></div>' +
+      '    <div class="booking-step-track"></div>' +
+      '    <div class="booking-step-dot" data-step="3"><span>3</span><small>Review</small></div>' +
       "  </div>" +
       '  <div class="booking-modal-status"></div>' +
-      '  <div class="booking-slots-grid"></div>' +
-      '  <p class="booking-modal-note">Pick a time to continue to secure checkout on Wix, where you can add extras, fill in your details and pay. Nothing is booked until that step is complete.</p>' +
+
+      '  <div class="booking-step-panel" data-panel="1">' +
+      '    <div class="booking-modal-row">' +
+      '      <input type="date" class="booking-date-input">' +
+      '      <button class="btn btn-primary btn-sm booking-find-btn">Find Times</button>' +
+      "    </div>" +
+      '    <div class="booking-slots-grid"></div>' +
+      "  </div>" +
+
+      '  <div class="booking-step-panel" data-panel="2" hidden>' +
+      '    <p class="booking-step-intro">Add anything else you need for this session. You&rsquo;ll confirm the same extras on the secure checkout page next.</p>' +
+      '    <div class="booking-addons-list"></div>' +
+      '    <div class="booking-total-row"><span>Estimated total</span><strong class="booking-total-value"></strong></div>' +
+      '    <div class="booking-step-actions">' +
+      '      <button type="button" class="btn btn-ghost btn-sm" data-back-to="1">Back</button>' +
+      '      <button type="button" class="btn btn-primary btn-sm" data-next-to="3">Continue to Review</button>' +
+      "    </div>" +
+      "  </div>" +
+
+      '  <div class="booking-step-panel" data-panel="3" hidden>' +
+      '    <div class="booking-review-card">' +
+      '      <div class="booking-review-name"></div>' +
+      '      <p class="booking-review-desc"></p>' +
+      '      <div class="booking-review-rows"></div>' +
+      '      <div class="booking-total-row"><span>Estimated total</span><strong class="booking-total-value-2"></strong></div>' +
+      "    </div>" +
+      '    <div class="booking-step-actions">' +
+      '      <button type="button" class="btn btn-ghost btn-sm" data-back-to="2">Back</button>' +
+      '      <button type="button" class="btn btn-primary btn-block booking-checkout-btn">Continue to Secure Checkout</button>' +
+      "    </div>" +
+      '    <div class="booking-checkout-status"></div>' +
+      '    <p class="booking-modal-note">You&rsquo;ll select these same extras, fill in your details and pay on Wix&rsquo;s secure hosted checkout. Nothing is booked until that step is complete.</p>' +
+      "  </div>" +
       "</div>";
     document.body.appendChild(modalEl);
 
     titleEl = modalEl.querySelector(".booking-modal-title");
+    descEl = modalEl.querySelector(".booking-modal-desc");
+    statusEl = modalEl.querySelector(".booking-modal-status");
+    closeBtnEl = modalEl.querySelector(".booking-modal-close");
+    stepDots = Array.from(modalEl.querySelectorAll(".booking-step-dot"));
+
     dateInputEl = modalEl.querySelector(".booking-date-input");
     findBtnEl = modalEl.querySelector(".booking-find-btn");
     slotsEl = modalEl.querySelector(".booking-slots-grid");
-    statusEl = modalEl.querySelector(".booking-modal-status");
-    closeBtnEl = modalEl.querySelector(".booking-modal-close");
+
+    addonsListEl = modalEl.querySelector(".booking-addons-list");
+    totalValueEl = modalEl.querySelector(".booking-total-value");
+    totalValue2El = modalEl.querySelector(".booking-total-value-2");
+
+    reviewNameEl = modalEl.querySelector(".booking-review-name");
+    reviewDescEl = modalEl.querySelector(".booking-review-desc");
+    reviewRowsEl = modalEl.querySelector(".booking-review-rows");
+
+    checkoutBtnEl = modalEl.querySelector(".booking-checkout-btn");
+    checkoutStatusEl = modalEl.querySelector(".booking-checkout-status");
 
     dateInputEl.min = todayISO();
     dateInputEl.max = maxDateISO();
@@ -155,6 +248,14 @@
       if (e.key === "Escape" && modalEl.classList.contains("active")) closeModal();
     });
     findBtnEl.addEventListener("click", () => runSearch());
+
+    modalEl.querySelectorAll("[data-back-to]").forEach((btn) => {
+      btn.addEventListener("click", () => goToStep(parseInt(btn.getAttribute("data-back-to"), 10)));
+    });
+    modalEl.querySelectorAll("[data-next-to]").forEach((btn) => {
+      btn.addEventListener("click", () => goToStep(parseInt(btn.getAttribute("data-next-to"), 10)));
+    });
+    checkoutBtnEl.addEventListener("click", handleCheckout);
   }
 
   function closeModal() {
@@ -162,13 +263,36 @@
     document.body.style.overflow = "";
   }
 
-  function openModal(serviceId, name) {
+  function goToStep(n) {
+    modalEl.querySelectorAll(".booking-step-panel").forEach((panel) => {
+      panel.hidden = panel.getAttribute("data-panel") !== String(n);
+    });
+    stepDots.forEach((dot) => {
+      const step = parseInt(dot.getAttribute("data-step"), 10);
+      dot.classList.toggle("is-active", step === n);
+      dot.classList.toggle("is-done", step < n);
+    });
+    statusEl.textContent = "";
+    if (n === 2) renderAddonsStep();
+    if (n === 3) renderReviewStep();
+  }
+
+  function openModal(serviceId, name, price, desc) {
     buildModal();
     activeServiceId = serviceId;
+    activeServiceName = name;
+    activeBasePrice = parsePrice(price);
+    activeServiceDesc = desc || "";
+    selectedSlot = null;
+    selectedAddOnIds = new Set();
+
     titleEl.textContent = name;
+    descEl.textContent = activeServiceDesc;
+    descEl.hidden = !activeServiceDesc;
     dateInputEl.value = todayISO();
     slotsEl.innerHTML = "";
     statusEl.textContent = "";
+    goToStep(1);
     modalEl.classList.add("active");
     document.body.style.overflow = "hidden";
     runSearch();
@@ -193,7 +317,12 @@
         btn.type = "button";
         btn.className = "booking-slot-btn";
         btn.textContent = formatTime(slot.localStartDate);
-        btn.addEventListener("click", () => selectSlot(slot, btn));
+        btn.addEventListener("click", () => {
+          slotsEl.querySelectorAll(".booking-slot-btn").forEach((b) => b.classList.remove("is-selected"));
+          btn.classList.add("is-selected");
+          selectedSlot = slot;
+          goToStep(2);
+        });
         slotsEl.appendChild(btn);
       });
     } catch (err) {
@@ -203,18 +332,77 @@
     }
   }
 
-  async function selectSlot(slot, btnEl) {
-    slotsEl.querySelectorAll(".booking-slot-btn").forEach((b) => (b.disabled = true));
-    btnEl.textContent = "Redirecting…";
-    btnEl.classList.add("is-loading");
+  // ---------- step 2: add-ons ----------
+  function currentTotal() {
+    let total = activeBasePrice;
+    ADDONS.forEach((a) => {
+      if (selectedAddOnIds.has(a.id)) total += a.price;
+    });
+    return total;
+  }
+
+  function renderAddonsStep() {
+    addonsListEl.innerHTML = ADDONS.map(
+      (a) => `
+        <label class="booking-addon-row">
+          <span class="booking-addon-check">
+            <input type="checkbox" data-addon-id="${a.id}"${selectedAddOnIds.has(a.id) ? " checked" : ""}>
+            <span class="booking-addon-name">${a.name}</span>
+          </span>
+          <span class="booking-addon-price">+$${a.price}</span>
+        </label>`
+    ).join("");
+    addonsListEl.querySelectorAll("input[data-addon-id]").forEach((input) => {
+      input.addEventListener("change", () => {
+        const id = input.getAttribute("data-addon-id");
+        if (input.checked) selectedAddOnIds.add(id);
+        else selectedAddOnIds.delete(id);
+        totalValueEl.textContent = money(currentTotal());
+      });
+    });
+    totalValueEl.textContent = money(currentTotal());
+  }
+
+  // ---------- step 3: review ----------
+  function renderReviewStep() {
+    reviewNameEl.textContent = activeServiceName;
+    reviewDescEl.textContent = activeServiceDesc;
+    reviewDescEl.hidden = !activeServiceDesc;
+
+    const rows = [];
+    if (selectedSlot) {
+      rows.push({ label: "Date", value: formatDateNice(selectedSlot.localStartDate) });
+      rows.push({ label: "Time", value: formatTime(selectedSlot.localStartDate) });
+    }
+    rows.push({ label: "Base rate", value: money(activeBasePrice) });
+    const chosenAddons = ADDONS.filter((a) => selectedAddOnIds.has(a.id));
+    if (chosenAddons.length) {
+      chosenAddons.forEach((a) => rows.push({ label: a.name, value: "+" + money(a.price) }));
+    } else {
+      rows.push({ label: "Extras", value: "None selected" });
+    }
+
+    reviewRowsEl.innerHTML = rows
+      .map((r) => `<div class="booking-review-row"><span>${r.label}</span><span>${r.value}</span></div>`)
+      .join("");
+    totalValue2El.textContent = money(currentTotal());
+  }
+
+  async function handleCheckout() {
+    if (!selectedSlot) {
+      goToStep(1);
+      return;
+    }
+    checkoutBtnEl.disabled = true;
+    checkoutBtnEl.textContent = "Redirecting…";
+    checkoutStatusEl.textContent = "";
     try {
-      const url = await createCheckoutRedirect(slot);
+      const url = await createCheckoutRedirect(selectedSlot);
       window.location.href = url;
     } catch (err) {
-      statusEl.textContent = "Couldn't start checkout. Please try again, or email hello@aguybstudios.com.";
-      slotsEl.querySelectorAll(".booking-slot-btn").forEach((b) => (b.disabled = false));
-      btnEl.textContent = formatTime(slot.localStartDate);
-      btnEl.classList.remove("is-loading");
+      checkoutStatusEl.textContent = "Couldn't start checkout. Please try again, or email hello@aguybstudios.com.";
+      checkoutBtnEl.disabled = false;
+      checkoutBtnEl.textContent = "Continue to Secure Checkout";
       console.warn("[AGUYB Booking]", err);
     }
   }
@@ -226,7 +414,12 @@
       el.dataset.bookingBound = "1";
       el.addEventListener("click", (e) => {
         e.preventDefault();
-        openModal(el.getAttribute("data-book-service-id"), el.getAttribute("data-book-service-name") || "Book This Package");
+        openModal(
+          el.getAttribute("data-book-service-id"),
+          el.getAttribute("data-book-service-name") || "Book This Package",
+          el.getAttribute("data-book-price"),
+          el.getAttribute("data-book-desc")
+        );
       });
     });
   }

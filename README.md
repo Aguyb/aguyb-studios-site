@@ -517,28 +517,51 @@ overwrites it if you've since changed something in the dashboard.
 `articles/<slug>.html` page needs to be built once (it's a small, fast
 follow-up, ask any time you add a new post and want its page live).
 
-## Real booking: pick an hour, see real availability, pay on Wix
+## Real booking: pick a time, choose add‑ons, review, pay on Wix
 
 `pricing.html`'s 5 Studio Rental tiers (2/3/4/6/8 hours), and the home
 page's **Bundles** section (4 real hours‑plus‑add‑ons packages, see below)
 are wired to your **real** Wix Bookings services, prices and calendar, not
-a lead form. The flow, all handled by `assets/js/booking-flow.js`:
+a lead form. Clicking **Check Availability & Book** opens a guided 3‑step
+modal, all handled by `assets/js/booking-flow.js`:
 
-1. Visitor clicks **Check Availability & Book** on a tier.
-2. A panel opens with a date picker. Selecting a date calls Wix Bookings'
-   real-time Availability API for that exact service and shows the real
-   open time slots for that day, straight from your calendar.
-3. Clicking a time slot calls Wix's **Redirects API**, which generates a
-   one-time, secure checkout URL for that exact slot, and sends the
-   visitor there.
-4. On Wix's own hosted checkout page (not this site), the visitor can add
-   any configured add-ons, review their cart, fill in their details, and
-   pay, all handled natively by Wix, PCI-compliant, nothing custom-built
-   for payment. Wix then redirects them back to `pricing.html`.
+**Step 1, Time.** A date picker calls Wix Bookings' real-time Availability
+API for that exact service and shows the real open time slots for that
+day, straight from your calendar. Picking a time advances to step 2.
+
+**Step 2, Add‑Ons.** A checklist of the real add-ons configured on that
+service in Wix (Additional Camera $40, Teleprompter $36, Producer on Set
+$70, Subtitles $120, Video Editing $250, Graphics Motion $200), each with
+a live-updating estimated total as the visitor checks items. This list is
+hardcoded in `booking-flow.js` (the `ADDONS` constant) rather than fetched
+live, because it's the same list, shared by every Studio Rental hourly
+service, if you add, remove, or reprice an add-on in Wix, update it here
+too. See "Known gap" below for why it can't be fetched live and pre-filled
+automatically.
+
+**Step 3, Review.** A summary card, service name and description, chosen
+date and time, every selected extra with its price, and the estimated
+total, before the visitor commits to anything.
+
+**Then, checkout.** Clicking **Continue to Secure Checkout** calls Wix's
+**Redirects API**, which generates a one-time, secure checkout URL for
+that exact slot, and sends the visitor there. On Wix's own hosted
+checkout page (not this site), the visitor selects the same add-ons they
+planned in step 2, fills in their details, and pays, all handled natively
+by Wix, PCI-compliant, nothing custom-built for payment. Wix then
+redirects them back to the page they started from.
 
 This site never sees or touches card details at any point, the last step
 before payment is always a redirect to a real `wixapis.com`/Wix-hosted
 URL.
+
+**Known gap:** the Wix Headless Redirects API (`bookingsCheckout`) only
+accepts a time slot, it has no field for pre-selecting add-ons, so step 2
+on this site is a planning/estimate tool, not something that carries
+through automatically. The visitor re-selects the same extras on Wix's
+own checkout page, one extra click, but they arrive knowing exactly what
+they want and what it costs. If Wix adds add-on pass-through to that API
+later, step 2's selections can be wired straight into the redirect body.
 
 ### Bundles: real packages, not made-up numbers
 
