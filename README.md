@@ -249,11 +249,12 @@ breaks.
 | Collection | Powers |
 |---|---|
 | `nav_links` | Header nav, mobile menu, and the three footer link columns |
-| `content_blocks` | Every eyebrow / headline / paragraph / button pair, keyed by a `blockKey` per section (e.g. `home_hero`, `onsite_coverage`, `faq_final_cta`). The `home_hero` row also has **Background Image** and **Background Video** media-picker fields, see below. |
+| `content_blocks` | Every eyebrow / headline / paragraph / button pair, keyed by a `blockKey` per section (e.g. `home_hero`, `onsite_coverage`, `faq_final_cta`). Several rows also have **Background Image** and/or **Background Video** media-picker fields: `home_hero` and `onsite_hero` (page hero backgrounds), and `philosophy` / `onsite_what_it_is` (the photo next to the "Why It Works" / "What This Service Is" text). See below. |
 | `services` | The "What We Build" accordion on the home page |
 | `sets` | The 4 studio sets (home page grid + blog sidebar) |
 | `bundles` | The 3 pricing bundles |
 | `reviews` | The 3 testimonial cards |
+| `recent_work` | "Podcasts We've Produced," the reel at the top of the home page, see below |
 | `shortform_clips` | The short-form clip slideshow (replaced the old "Why AGUYB" strip), see below |
 | `process_steps` | The 4-step process on the home page, the 3-step "How Booking Works," and the 4-step "How On-Site Production Works" (filtered by a `page` field) |
 | `onsite_packages` | The hourly rate plus the 2-hour and 3-hour offsite packages |
@@ -268,11 +269,10 @@ change it.
 
 ### Known gaps (still hardcoded, by design for now)
 
-- The **podcast reel carousel** (6 episodes on the home page) and the
-  **"Shows We Recorded On Site" badges** on `on-site-production.html`
+- The **"Shows We Recorded On Site" badges** on `on-site-production.html`
   aren't in a collection yet, there wasn't an existing episodes collection
-  to hook into. Ask if you'd like a `podcast_episodes` collection added,
-  it's a small follow-up.
+  to hook into. Ask if you'd like a collection added for those too, it's a
+  small follow-up.
 - Each service in "What We Build" now uses one shared icon instead of a
   unique icon per service (the collection stores title + description
   only).
@@ -288,6 +288,29 @@ change it.
 Open **Content Manager** in your Wix dashboard, open the `shortform_clips`
 collection, change the `title` of the first row, save, then reload the
 live site, the short-form clip slideshow updates with no code change needed.
+
+### Recent Work: "Podcasts We've Produced"
+
+The scrolling row of episode cards at the top of the home page ("Recent
+Work / Podcasts We've Produced") is fully driven by the `recent_work`
+collection. Each card also shows who it was filmed for, and clicking a
+card opens it in the site's existing video lightbox at whatever aspect
+ratio the uploaded clip actually is (no forced cropping).
+
+| Field | Powers |
+|---|---|
+| `title` | Bold label on the card, e.g. "The Founder's Table" |
+| `subtitle` | Small tag under the title, e.g. "Episode 12" |
+| `client` | Shown as "Filmed for [client]" on the card and in the lightbox caption. Leave blank to hide that line entirely. |
+| `posterUrl` | The card's cover image, a real Media Manager picker field |
+| `videoUrl` | The episode video itself, a real Media Manager picker field, upload or pick a clip, or leave empty to show just the poster |
+| `order` | Left-to-right position |
+
+The 6 rows currently in there mirror what used to be hardcoded, with
+placeholder client names (Meridian Advisory Group, River City Auto Group,
+etc.) standing in until you swap them for real clients and real footage.
+Add, remove or reorder rows in the Content Manager and the row on the home
+page updates to match, no code change needed.
 
 ### Short-form clip slideshow
 
@@ -335,6 +358,16 @@ whichever, a Wix Media Manager pick or a plain URL, automatically.
 The video always plays muted (autoplay policies in every browser require
 this) and silently falls back to the still image if the video fails to
 load or the browser blocks autoplay.
+
+The same **Background Image** / **Background Video** picker pattern also
+works on three other `content_blocks` rows, so you can swap those photos
+from the Wix dashboard too:
+
+- `onsite_hero` &rarr; the hero photo/video on `on-site-production.html`
+- `philosophy` &rarr; the photo next to "People believe in what they can
+  see" on the home page
+- `onsite_what_it_is` &rarr; the photo next to "A portable podcast studio,
+  anywhere you need it" on `on-site-production.html`
 
 ## Blog: your real posts, imported from Wix Blog
 

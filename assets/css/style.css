@@ -466,6 +466,7 @@ h1, h2, h3, h4 {
 .reel-play svg { width: 15px; height: 15px; fill: #fff; margin-left: 2px; }
 .reel-card b { display: block; font-size: 14.5px; font-weight: 600; color: #fff; }
 .reel-card span { font-size: 12px; color: rgba(255,255,255,0.72); }
+.reel-card .reel-client { display: block; font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 3px; letter-spacing: 0.2px; }
 
 /* ==========================================================================
    Short-form clip slideshow (replaces the old "Why AGUYB" strip)

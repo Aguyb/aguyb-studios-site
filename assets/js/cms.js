@@ -592,6 +592,32 @@
     if (window.AguybLightbox) window.AguybLightbox.bindTriggers();
   }
 
+  // "Recent Work — Podcasts We've Produced": the sliding row of past
+  // sessions at the top of the home page. Each card can now also show who
+  // it was filmed for, and the whole row is editable from the Wix
+  // dashboard's `recent_work` collection instead of being hardcoded.
+  function renderRecentWork(items) {
+    if (!items) return;
+    const track = document.getElementById("recentWorkTrack");
+    if (!track) return;
+    const sorted = items.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+    const cardHtml = (w) => {
+      const poster = resolveWixMediaUrl(w.posterUrl);
+      const video = resolveWixMediaUrl(w.videoUrl);
+      const captionParts = [w.title, w.subtitle].filter(Boolean).join(" — ");
+      const caption = w.client ? `${captionParts} · Filmed for ${w.client}` : captionParts;
+      return `
+        <div class="reel-card" data-video="${esc(video)}" data-poster="${esc(poster)}" data-caption="${esc(caption)}">
+          <img src="${esc(poster)}" alt="Podcast episode cover">
+          <div class="reel-overlay"><div class="reel-play">${ICON_PLAY}</div><b>${esc(w.title)}</b><span>${esc(w.subtitle)}</span>${w.client ? `<span class="reel-client">Filmed for ${esc(w.client)}</span>` : ""}</div>
+        </div>`;
+    };
+    // Duplicate the set once so the CSS scroll animation loops seamlessly,
+    // same trick used by the short-form clip track below this section.
+    track.innerHTML = sorted.map(cardHtml).join("") + sorted.map(cardHtml).join("");
+    if (window.AguybLightbox) window.AguybLightbox.bindTriggers();
+  }
+
   function renderProcessSteps(all) {
     if (!all) return;
     const forPage = (page) => all.filter((s) => s.page === page).sort((a, b) => (a.stepIndex || 0) - (b.stepIndex || 0));
@@ -875,15 +901,17 @@
       renderSiteSettings(siteSettings);
 
       if (PAGE === "home") {
-        const [services, sets, bundles, reviews, shortformClips, processSteps] = await Promise.all([
+        const [services, sets, bundles, reviews, recentWork, shortformClips, processSteps] = await Promise.all([
           queryCollection("services", "order"),
           queryCollection("sets", "order"),
           queryCollection("bundles", "order"),
           queryCollection("reviews", "order"),
+          queryCollection("recent_work", "order"),
           queryCollection("shortform_clips", "order"),
           queryCollection("process_steps")
         ]);
         if (contentBlocks) renderContentBlocksHome(contentBlocks);
+        renderRecentWork(recentWork);
         renderServices(services);
         renderSets(sets);
         renderBundles(bundles);
