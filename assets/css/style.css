@@ -817,6 +817,11 @@ h1, h2, h3, h4 {
 
 .form-panel { padding: 40px; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+/* Spam honeypot: off-screen (not display:none) so basic bots that fill every
+   visible-looking field still trip it, while screen readers skip it via
+   aria-hidden and it's never in the tab order. */
+.hp-field { position: absolute; left: -9999px; top: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
 .form-field { display: flex; flex-direction: column; gap: 8px; }
 .form-field.full { grid-column: 1 / -1; }
 .form-field label { font-size: 12.5px; font-weight: 600; letter-spacing: 0.03em; color: var(--text-2); }

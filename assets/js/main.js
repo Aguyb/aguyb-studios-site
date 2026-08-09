@@ -281,6 +281,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const btn = form.querySelector('button[type="submit"]');
       const originalLabel = btn.textContent;
 
+      // Honeypot: a hidden field real visitors never see or fill. If it has
+      // a value, a bot filled it. Pretend success (no error, no clue for
+      // the bot) but skip the actual Wix Forms submission entirely.
+      const honeypot = form.querySelector('input[name="website"]');
+      if (honeypot && honeypot.value.trim()) {
+        status.textContent = "Thanks, we've received your request and will follow up within one business day.";
+        status.classList.add('show', 'success');
+        form.reset();
+        return;
+      }
+
       btn.textContent = 'Sending...';
       btn.disabled = true;
       status.className = 'form-status';
