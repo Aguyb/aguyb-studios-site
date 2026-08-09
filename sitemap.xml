@@ -49,6 +49,18 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://aguybstudios.com/privacy-policy.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://aguybstudios.com/terms-of-service.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
     <loc>https://aguybstudios.com/articles/aguyb-studios-jacksonville-s-1-podcast-studio-for-4k-video-production-content-creation.html</loc>
     <lastmod>2026-08-09</lastmod>
     <changefreq>monthly</changefreq>
