@@ -389,6 +389,41 @@ The page's hero text, section headings, and final CTA are editable the
 same way as every other page, through `content_blocks` rows keyed
 `sets_hero`, `sets_intro`, `sets_guests_intro`, and `sets_final_cta`.
 
+### Portfolio & Promotional Rights: client publicity terms
+
+Two new pieces, both static (not CMS-driven, on purpose — this is legal
+text and shouldn't change from a stray photo edit):
+
+- **`legal/AGUYB-Portfolio-Promotional-Rights-Addendum.docx`** — the
+  signable addendum: three tiers (Standard / Confidential / No-Publicity
+  Client), definitions, general provisions, and a signature block. This
+  is a starting draft, not attorney-reviewed — have a Florida-licensed
+  attorney look it over, along with the rest of your production
+  agreement, before relying on it.
+- **`portfolio-rights.html`** — a plain-language copy of the same terms,
+  hosted on the site so it can be linked from the Wix Bookings form (see
+  below). Linked from every page footer under "Portfolio & Promotional
+  Rights."
+
+To actually make a client see and accept this at booking time, add two
+fields to each service's Wix Bookings form in your Wix dashboard
+(Bookings → Services → [service] → Booking Form):
+
+1. A required **dropdown or radio field**, e.g. "Publicity tier," with
+   options Standard Client / Confidential Client / No-Publicity Client.
+2. A required **checkbox field**: "I have read and agree to the
+   Portfolio & Promotional Rights terms," with the label linking to
+   `portfolio-rights.html` on your live site.
+
+Wix stores that form submission with the booking record, so the
+selected tier and the timestamp of consent are tied to that specific
+booking going forward — no need to ask again per post. Wix Invoices
+doesn't support a click-to-accept field, so it isn't the enforcement
+point; if useful, you can still add a line item note on the invoice
+like "Publicity tier: Standard Client (per booking agreement)" for the
+paper trail, but the booking form checkbox is what actually captures
+consent.
+
 ### Hero background: swap the photo, or add a video
 
 The very first section of the home page (the hero, "Jacksonville Top
