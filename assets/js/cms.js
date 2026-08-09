@@ -652,10 +652,9 @@
       .map((g) => {
         const photo = resolveWixMediaUrl(g.photoUrl);
         return `
-          <div class="guest-card">
-            <div class="guest-photo"><img src="${esc(photo)}" alt="${esc(g.name)}"></div>
-            <b>${esc(g.name)}</b>
-            <span>${esc(g.role)}</span>
+          <div class="guest-photo-card">
+            <img src="${esc(photo)}" alt="${esc(g.name)}">
+            <div class="guest-caption"><b>${esc(g.name)}</b><span>${esc(g.role)}</span></div>
           </div>`;
       })
       .join("");
