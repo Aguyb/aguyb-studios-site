@@ -1032,8 +1032,15 @@ h1, h2, h3, h4 {
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.14);
   background: #000;
+  transition: max-width 0.3s var(--ease);
 }
 .lightbox-inner video { width: 100%; height: 100%; object-fit: cover; background: #000; }
+
+/* Vertical (9:16) playback for short-form clips, opened with data-vertical="true" */
+.lightbox-inner.is-vertical {
+  max-width: 360px;
+  aspect-ratio: 9/16;
+}
 .lightbox-close {
   position: absolute; top: -46px; right: 0;
   width: 38px; height: 38px; border-radius: 50%;

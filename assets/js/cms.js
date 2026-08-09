@@ -565,7 +565,7 @@
       const video = resolveWixMediaUrl(c.videoUrl);
       const caption = `${c.title || ""}${c.subtitle ? " — " + c.subtitle : ""}`;
       return `
-        <div class="shortform-card" data-video="${esc(video)}" data-poster="${esc(poster)}" data-caption="${esc(caption)}">
+        <div class="shortform-card" data-video="${esc(video)}" data-poster="${esc(poster)}" data-caption="${esc(caption)}" data-vertical="true">
           <img src="${esc(poster)}" alt="Short-form clip cover">
           <div class="reel-overlay"><div class="reel-play">${ICON_PLAY}</div><b>${esc(c.title)}</b><span>${esc(c.subtitle)}</span></div>
         </div>`;

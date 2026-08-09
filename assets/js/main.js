@@ -109,15 +109,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---------- Video lightbox (reel cards, set cards, studio tour buttons) ----------
   const lightbox = document.getElementById('lightbox');
+  const lightboxInner = lightbox ? lightbox.querySelector('.lightbox-inner') : null;
   const lightboxVideo = document.getElementById('lightboxVideo');
   const lightboxCaption = document.getElementById('lightboxCaption');
   const lightboxClose = document.getElementById('lightboxClose');
 
   if (lightbox && lightboxVideo) {
-    const openLightbox = (src, poster, caption) => {
+    const openLightbox = (src, poster, caption, vertical) => {
       if (src) lightboxVideo.setAttribute('src', src);
       if (poster) lightboxVideo.setAttribute('poster', poster);
       lightboxCaption.textContent = caption || '';
+      if (lightboxInner) lightboxInner.classList.toggle('is-vertical', !!vertical);
       lightbox.classList.add('active');
       document.body.style.overflow = 'hidden';
       lightboxVideo.play().catch(() => {
@@ -137,12 +139,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Named + idempotent so cms.js can call it again after it re-renders a
     // grid of [data-video] cards (e.g. the short-form clip slideshow) from
     // Wix Data, without double-binding the cards that were already static.
+    // Cards marked data-vertical="true" (the short-form 9:16 clips) play in
+    // a tall, phone-shaped frame instead of the default 16:9 one.
     const bindVideoTriggers = () => {
       document.querySelectorAll('[data-video]:not([data-video-bound])').forEach(trigger => {
         trigger.setAttribute('data-video-bound', '');
         trigger.addEventListener('click', (e) => {
           e.preventDefault();
-          openLightbox(trigger.dataset.video, trigger.dataset.poster, trigger.dataset.caption);
+          openLightbox(trigger.dataset.video, trigger.dataset.poster, trigger.dataset.caption, trigger.dataset.vertical === 'true');
         });
       });
     };
