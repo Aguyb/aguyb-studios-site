@@ -115,10 +115,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const lightboxClose = document.getElementById('lightboxClose');
 
   if (lightbox && lightboxVideo) {
+    // Once the real video file's metadata loads, size the frame to its
+    // exact native width/height instead of guessing 9:16 or 16:9, so the
+    // clip always plays at the precise ratio it was uploaded in, cropped
+    // by nothing (object-fit: contain in the CSS handles the rest).
+    const matchVideoAspectRatio = () => {
+      if (lightboxInner && lightboxVideo.videoWidth && lightboxVideo.videoHeight) {
+        lightboxInner.style.aspectRatio = lightboxVideo.videoWidth + ' / ' + lightboxVideo.videoHeight;
+      }
+    };
+    lightboxVideo.addEventListener('loadedmetadata', matchVideoAspectRatio);
+
     const openLightbox = (src, poster, caption, vertical) => {
+      if (lightboxInner) lightboxInner.style.aspectRatio = '';
       if (src) lightboxVideo.setAttribute('src', src);
       if (poster) lightboxVideo.setAttribute('poster', poster);
       lightboxCaption.textContent = caption || '';
+      // data-vertical gives an immediate best-guess frame (tall vs. wide)
+      // before the file has loaded; matchVideoAspectRatio() then refines it
+      // to the clip's real dimensions the moment they're known.
       if (lightboxInner) lightboxInner.classList.toggle('is-vertical', !!vertical);
       lightbox.classList.add('active');
       document.body.style.overflow = 'hidden';
@@ -133,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lightboxVideo.pause();
       lightboxVideo.removeAttribute('src');
       lightboxVideo.load();
+      if (lightboxInner) lightboxInner.style.aspectRatio = '';
       document.body.style.overflow = '';
     };
 

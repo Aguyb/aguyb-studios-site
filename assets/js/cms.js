@@ -99,6 +99,19 @@
     }
   }
 
+  // Swaps the <img> inside a ".philosophy-media" panel (used by the home
+  // page's "Why It Works" section and the on-site page's "What This
+  // Service Is" section) for whatever real photo the block's bgImageUrl
+  // points to, resolving Wix Media Manager identifiers the same way the
+  // hero background does.
+  function renderMediaImage(mediaEl, block) {
+    if (!mediaEl || !block) return;
+    const url = resolveWixMediaUrl(block.bgImageUrl);
+    if (!url) return;
+    const img = mediaEl.querySelector("img");
+    if (img) img.setAttribute("src", url);
+  }
+
   function fillCtas(container, block) {
     if (!container || !block) return;
     const btns = container.querySelectorAll("a.btn");
@@ -269,6 +282,7 @@
       }
       fillCtas(philosophyCol, philosophyBlock);
     }
+    renderMediaImage(document.querySelector(".philosophy-media"), philosophyBlock);
 
     fillHead(document.querySelector("#services .section-head"), byBlockKey(blocks, "services_intro"));
     fillHead(document.querySelector("#sets .section-head"), byBlockKey(blocks, "sets_intro"));
@@ -340,6 +354,7 @@
       fillHead(heroInner, hero, { headingSelector: "h1", subSelector: "p" });
       fillCtas(heroInner, hero);
     }
+    renderHeroBackground(hero);
 
     const heads = document.querySelectorAll(".section-head");
     fillHead(heads[0], byBlockKey(blocks, "onsite_track_record"));
@@ -359,6 +374,7 @@
       const textWrap = whatItIsCol.querySelector(".philosophy-text p");
       if (textWrap && whatItIs.body) textWrap.textContent = whatItIs.body;
     }
+    renderMediaImage(document.querySelector(".philosophy-media"), whatItIs);
 
     const coverage = byBlockKey(blocks, "onsite_coverage");
     const coverageTextCol = document.querySelector(".coverage-panel > div:not(.coverage-visual)");
