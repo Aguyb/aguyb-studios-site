@@ -399,6 +399,30 @@
     }
   }
 
+  function renderContentBlocksSets(blocks) {
+    const hero = byBlockKey(blocks, "sets_hero");
+    fillHead(document.querySelector(".hero-inner"), hero, { headingSelector: "h1", subSelector: "p" });
+    const heroInner = document.querySelector(".hero-inner");
+    if (heroInner && hero) fillCtas(heroInner, hero);
+
+    fillHead(document.querySelector("#sets .section-head"), byBlockKey(blocks, "sets_intro"));
+    fillHead(document.querySelector("#guests .section-head"), byBlockKey(blocks, "sets_guests_intro"));
+
+    const finalCta = byBlockKey(blocks, "sets_final_cta");
+    fillHead(document.querySelector(".final-cta"), finalCta);
+    const finalCtaEl = document.querySelector(".final-cta .container");
+    if (finalCtaEl && finalCta) fillCtas(finalCtaEl, finalCta);
+
+    const footerAbout = byBlockKey(blocks, "footer_about");
+    if (footerAbout) {
+      document.querySelectorAll(".footer-about p").forEach((p) => {
+        if (footerAbout.body) p.textContent = footerAbout.body;
+      });
+      const tagline = document.querySelector(".footer-bottom span:last-child");
+      if (tagline && footerAbout.heading) tagline.textContent = footerAbout.heading;
+    }
+  }
+
   function renderContentBlocksFaq(blocks) {
     const hero = byBlockKey(blocks, "faq_hero");
     fillHead(document.querySelector(".hero-inner"), hero, { headingSelector: "h1", subSelector: "p" });
@@ -516,7 +540,7 @@
       sidebarSets.innerHTML = sets
         .sort((a, b) => (a.order || 0) - (b.order || 0))
         .map((s) => `
-          <a class="sidebar-set-card" href="index.html#sets">
+          <a class="sidebar-set-card" href="sets.html">
             <img src="${esc(s.posterImage)}" alt="${esc(s.name)}">
             <div><b>${esc(s.name)}</b><span>${esc(s.description)}</span></div>
           </a>`)
@@ -616,6 +640,25 @@
     // same trick used by the short-form clip track below this section.
     track.innerHTML = sorted.map(cardHtml).join("") + sorted.map(cardHtml).join("");
     if (window.AguybLightbox) window.AguybLightbox.bindTriggers();
+  }
+
+  // "Notable Guests Who've Stepped Into the Studio" gallery on sets.html.
+  function renderNotableGuests(guests) {
+    if (!guests) return;
+    const grid = document.getElementById("guestsGrid");
+    if (!grid) return;
+    const sorted = guests.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+    grid.innerHTML = sorted
+      .map((g) => {
+        const photo = resolveWixMediaUrl(g.photoUrl);
+        return `
+          <div class="guest-card">
+            <div class="guest-photo"><img src="${esc(photo)}" alt="${esc(g.name)}"></div>
+            <b>${esc(g.name)}</b>
+            <span>${esc(g.role)}</span>
+          </div>`;
+      })
+      .join("");
   }
 
   function renderProcessSteps(all) {
@@ -944,6 +987,14 @@
         if (contentBlocks) renderContentBlocksBlog(contentBlocks);
         renderBlogPosts(blogPosts);
         renderSets(sets);
+      } else if (PAGE === "sets") {
+        const [sets, guests] = await Promise.all([
+          queryCollection("sets", "order"),
+          queryCollection("notable_guests", "order")
+        ]);
+        if (contentBlocks) renderContentBlocksSets(contentBlocks);
+        renderSets(sets);
+        renderNotableGuests(guests);
       } else if (PAGE === "pricing") {
         const pricingTiers = await queryCollection("pricing_tiers", "order");
         if (contentBlocks) renderContentBlocksPricing(contentBlocks);

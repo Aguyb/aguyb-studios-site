@@ -14,6 +14,7 @@ editor or as a headless frontend reference) without conversion.
 ```
 aguyb-studios-site/
 ├── index.html                 Home page
+├── sets.html                    All 4 studio sets + a Notable Guests photo gallery, book directly from either
 ├── booking.html                Book Your Session page (reads ?set= and ?bundle= from links)
 ├── on-site-production.html     On-Site Podcast Production page
 ├── blog.html                   Blog index, with a Sets + Recommended Podcasts sidebar
@@ -26,6 +27,9 @@ aguyb-studios-site/
 ```
 
 Top navigation: What We Build, Sets, On-Site, Bundles, Blog, FAQ, Contact.
+**Sets now links to its own dedicated page (`sets.html`)** instead of
+anchoring back to the home page, the home page still has its own Sets
+teaser section too, both stay in sync from the same `sets` collection.
 Process and Reviews were removed from the nav bar but the sections themselves
 are still on the home page (`#process`, `#reviews`) and still linked from the
 footer. Because the nav grew to 7 items, it now switches to the hamburger
@@ -37,7 +41,7 @@ menu earlier (940px instead of 760px) and tightens its spacing between
 - Hero with a "Book Your Session" and "Studio Tour" CTA
 - A sliding, auto-scrolling carousel of past podcast episodes (second section, click any cover to watch)
 - "What We Build": an expandable accordion list instead of static cards, click a service to read the description
-- "Sets": the four studio sets, each with its own preview video and a "Book This Set" link
+- "Sets": the four studio sets, each with its own preview video and a "Book This Set" link. Also has its own full page (`sets.html`) with the same 4 sets plus a "Notable Guests Who've Stepped Into the Studio" photo gallery
 - "Bundles": three priced packages (Starter Session, Content Engine, Corporate Partner), each links to the booking page pre-filtered
 - "Reviews": a placeholder testimonial grid, ready to swap for real client feedback
 - A contact form (name, company, phone, email, project type, project details, and a subscribe checkbox) plus a dedicated booking page with its own request form
@@ -244,18 +248,19 @@ text, links and repeated cards in place. If a query fails for any reason,
 that section just keeps showing its original static content, nothing
 breaks.
 
-### The 14 collections
+### The 15 collections
 
 | Collection | Powers |
 |---|---|
 | `nav_links` | Header nav, mobile menu, and the three footer link columns |
-| `content_blocks` | Every eyebrow / headline / paragraph / button pair, keyed by a `blockKey` per section (e.g. `home_hero`, `onsite_coverage`, `faq_final_cta`). Several rows also have **Background Image** and/or **Background Video** media-picker fields: `home_hero` and `onsite_hero` (page hero backgrounds), and `philosophy` / `onsite_what_it_is` (the photo next to the "Why It Works" / "What This Service Is" text). See below. |
+| `content_blocks` | Every eyebrow / headline / paragraph / button pair, keyed by a `blockKey` per section (e.g. `home_hero`, `onsite_coverage`, `faq_final_cta`, `sets_hero`). Several rows also have **Background Image** and/or **Background Video** media-picker fields: `home_hero` and `onsite_hero` (page hero backgrounds), and `philosophy` / `onsite_what_it_is` (the photo next to the "Why It Works" / "What This Service Is" text). See below. |
 | `services` | The "What We Build" accordion on the home page |
-| `sets` | The 4 studio sets (home page grid + blog sidebar) |
+| `sets` | The 4 studio sets (home page grid, `sets.html`, and blog sidebar) |
 | `bundles` | The 3 pricing bundles |
 | `reviews` | The 3 testimonial cards |
 | `recent_work` | "Podcasts We've Produced," the reel at the top of the home page, see below |
-| `shortform_clips` | The short-form clip slideshow (replaced the old "Why AGUYB" strip), see below |
+| `shortform_clips` | The short-form clip slideshow, now directly under "Why It Works" on the home page, see below |
+| `notable_guests` | The photo gallery on `sets.html`, "Notable Guests Who've Stepped Into the Studio," see below |
 | `process_steps` | The 4-step process on the home page, the 3-step "How Booking Works," and the 4-step "How On-Site Production Works" (filtered by a `page` field) |
 | `onsite_packages` | The hourly rate plus the 2-hour and 3-hour offsite packages |
 | `coverage_areas` | The 6 coverage-area tags |
@@ -338,7 +343,8 @@ background embed.
 The home page section that used to be "Why AGUYB" (the 4 numbered reasons)
 is now a horizontally-scrolling row of vertical, short-form video cards,
 "A Look at the Clips We Cut", showcasing quick social-ready work instead
-of a text list. Clicking any card opens it in the site's existing video
+of a text list. It now sits directly under "Why It Works," before "What
+We Build." Clicking any card opens it in the site's existing video
 lightbox.
 
 It's fully driven by the `shortform_clips` collection:
@@ -353,6 +359,35 @@ It's fully driven by the `shortform_clips` collection:
 
 Add, remove or reorder rows in the Content Manager and the slideshow on
 the home page updates to match, no code change needed.
+
+### sets.html: a dedicated page for every set, plus Notable Guests
+
+Sets now has its own full page, `sets.html`, linked from the main nav
+(replacing the old `index.html#sets` anchor link everywhere except the
+home page's own inline Sets section, which stays as a teaser). The page
+has two CMS-driven sections:
+
+**All 4 sets**, pulled from the same `sets` collection that already powers
+the home page grid and the blog sidebar, no separate content to maintain.
+
+**"Notable Guests Who've Stepped Into the Studio"**, a new photo gallery
+driven by the `notable_guests` collection:
+
+| Field | Powers |
+|---|---|
+| `name` | Guest's name |
+| `role` | Shown under the name, e.g. "Founder, Meridian Advisory Group" |
+| `photoUrl` | A real Media Manager picker field, upload or pick a headshot |
+| `order` | Left-to-right / row position |
+
+The 6 rows currently in there are placeholders (fictional names and
+companies, reused photos), ready to be swapped for real guests and real
+headshots. Add, remove or reorder rows in the Content Manager and the
+gallery on `sets.html` updates to match, no code change needed.
+
+The page's hero text, section headings, and final CTA are editable the
+same way as every other page, through `content_blocks` rows keyed
+`sets_hero`, `sets_intro`, `sets_guests_intro`, and `sets_final_cta`.
 
 ### Hero background: swap the photo, or add a video
 
