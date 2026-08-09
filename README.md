@@ -303,7 +303,7 @@ ratio the uploaded clip actually is (no forced cropping).
 | `subtitle` | Small tag under the title, e.g. "Episode 12" |
 | `client` | Shown as "Filmed for [client]" on the card and in the lightbox caption. Leave blank to hide that line entirely. |
 | `posterUrl` | The card's cover image, a real Media Manager picker field |
-| `videoUrl` | The episode video itself, a real Media Manager picker field, upload or pick a clip, or leave empty to show just the poster |
+| `videoUrl` | The episode video itself, a real Media Manager picker field, upload or pick a clip, **or paste a YouTube link instead** (see "YouTube links work too" below), or leave empty to show just the poster |
 | `order` | Left-to-right position |
 
 The 6 rows currently in there mirror what used to be hardcoded, with
@@ -311,6 +311,27 @@ placeholder client names (Meridian Advisory Group, River City Auto Group,
 etc.) standing in until you swap them for real clients and real footage.
 Add, remove or reorder rows in the Content Manager and the row on the home
 page updates to match, no code change needed.
+
+### YouTube links work too
+
+Every `videoUrl`-style field on the site (`recent_work`, `shortform_clips`,
+`sets`, `blog_posts`, the hero's "Studio Tour" button, the hero background
+video) accepts two kinds of value:
+
+1. **A Wix Media Manager pick or upload** (the normal "Choose Media" flow),
+   or
+2. **A plain YouTube link pasted in as text** — `https://youtube.com/watch?v=...`,
+   `https://youtu.be/...`, or a Shorts link all work.
+
+The site detects which one it's looking at automatically. A YouTube link
+opens in an embedded YouTube player inside the same lightbox everything
+else uses; a Media Manager clip plays as a direct video file. No need to
+pick a mode anywhere, just paste whichever you have.
+
+One limitation: the **hero background video** (the one that autoplays
+silently behind the homepage headline) only supports a real uploaded file,
+not a YouTube link — YouTube doesn't allow that kind of silent, looping
+background embed.
 
 ### Short-form clip slideshow
 
@@ -327,7 +348,7 @@ It's fully driven by the `shortform_clips` collection:
 | `title` | Bold label on the card, e.g. "Client Testimonial Cutdown" |
 | `subtitle` | Small tag under the title, e.g. "15-Second Reel" |
 | `posterUrl` | The card's cover image, a real Media Manager picker field |
-| `videoUrl` | The clip itself, a real Media Manager picker field, same as the hero background video, upload or pick a clip, or leave empty to show just the poster |
+| `videoUrl` | The clip itself, a real Media Manager picker field, same as the hero background video, upload or pick a clip, **or paste a YouTube link instead**, or leave empty to show just the poster |
 | `order` | Left-to-right position |
 
 Add, remove or reorder rows in the Content Manager and the slideshow on
@@ -410,7 +431,7 @@ All 9 are editable from the `blog_posts` collection in your Wix dashboard:
 | `body` | The full article text. Separate paragraphs with a blank line between them in the Content Manager; a line starting with `## ` becomes a heading, everything else becomes a paragraph. |
 | `author` | Byline shown under the title |
 | `videoCaption` | Title shown on the Recommended Video card |
-| `videoUrl` | The Recommended Video itself, a real Media Manager picker field just like the hero background video, upload or pick a clip from Wix, or leave empty to keep the placeholder |
+| `videoUrl` | The Recommended Video itself, a real Media Manager picker field just like the hero background video, upload or pick a clip from Wix, **or paste a YouTube link instead**, or leave empty to keep the placeholder |
 
 Editing an existing post's `body`, `title`, `excerpt`, `category`, cover
 `image`, or video fields updates its article page automatically on next

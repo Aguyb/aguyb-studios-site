@@ -1040,6 +1040,13 @@ h1, h2, h3, h4 {
    the source clip's ratio don't match exactly. */
 .lightbox-inner video { width: 100%; height: 100%; object-fit: contain; background: #000; }
 
+/* A pasted YouTube link plays through an embedded iframe instead of the
+   <video> tag (YouTube doesn't expose a raw file URL). Only one of the two
+   is shown at a time, toggled by main.js via the .is-youtube class. */
+.lightbox-iframe { width: 100%; height: 100%; border: 0; background: #000; display: none; }
+.lightbox.is-youtube .lightbox-iframe { display: block; }
+.lightbox.is-youtube video { display: none; }
+
 /* Vertical clips (short-form slideshow, data-vertical="true") open in a
    tall 9:16 box as a starting guess. Once the actual video file loads,
    main.js reads its real width/height and overrides this aspect-ratio

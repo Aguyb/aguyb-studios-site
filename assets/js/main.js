@@ -111,14 +111,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const lightbox = document.getElementById('lightbox');
   const lightboxInner = lightbox ? lightbox.querySelector('.lightbox-inner') : null;
   const lightboxVideo = document.getElementById('lightboxVideo');
+  const lightboxIframe = document.getElementById('lightboxIframe');
   const lightboxCaption = document.getElementById('lightboxCaption');
   const lightboxClose = document.getElementById('lightboxClose');
+
+  // A CMS video field (recent_work, shortform_clips, sets, blog_posts, the
+  // hero "Studio Tour" button, etc.) accepts either a Wix Media Manager
+  // pick or a plain pasted YouTube link. If the URL matches a YouTube
+  // pattern, we embed it via iframe (YouTube doesn't expose a raw file
+  // URL); otherwise it plays through the normal <video> element.
+  const getYouTubeEmbedUrl = (url) => {
+    if (!url) return null;
+    const match = /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/.exec(url);
+    return match ? 'https://www.youtube-nocookie.com/embed/' + match[1] + '?autoplay=1&rel=0' : null;
+  };
 
   if (lightbox && lightboxVideo) {
     // Once the real video file's metadata loads, size the frame to its
     // exact native width/height instead of guessing 9:16 or 16:9, so the
     // clip always plays at the precise ratio it was uploaded in, cropped
-    // by nothing (object-fit: contain in the CSS handles the rest).
+    // by nothing (object-fit: contain in the CSS handles the rest). This
+    // only fires for direct video files; YouTube embeds keep the
+    // data-vertical best-guess box since the iframe's real dimensions
+    // aren't readable across origins.
     const matchVideoAspectRatio = () => {
       if (lightboxInner && lightboxVideo.videoWidth && lightboxVideo.videoHeight) {
         lightboxInner.style.aspectRatio = lightboxVideo.videoWidth + ' / ' + lightboxVideo.videoHeight;
@@ -128,26 +143,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const openLightbox = (src, poster, caption, vertical) => {
       if (lightboxInner) lightboxInner.style.aspectRatio = '';
-      if (src) lightboxVideo.setAttribute('src', src);
-      if (poster) lightboxVideo.setAttribute('poster', poster);
       lightboxCaption.textContent = caption || '';
-      // data-vertical gives an immediate best-guess frame (tall vs. wide)
-      // before the file has loaded; matchVideoAspectRatio() then refines it
-      // to the clip's real dimensions the moment they're known.
       if (lightboxInner) lightboxInner.classList.toggle('is-vertical', !!vertical);
+
+      const ytEmbed = getYouTubeEmbedUrl(src);
+      if (ytEmbed) {
+        if (lightbox) lightbox.classList.add('is-youtube');
+        if (lightboxIframe) lightboxIframe.setAttribute('src', ytEmbed);
+      } else {
+        if (lightbox) lightbox.classList.remove('is-youtube');
+        if (src) lightboxVideo.setAttribute('src', src);
+        if (poster) lightboxVideo.setAttribute('poster', poster);
+        lightboxVideo.play().catch(() => {
+          /* Autoplay may be blocked or the placeholder video file may not exist
+             yet, the poster image still displays so the layout never breaks. */
+        });
+      }
+
       lightbox.classList.add('active');
       document.body.style.overflow = 'hidden';
-      lightboxVideo.play().catch(() => {
-        /* Autoplay may be blocked or the placeholder video file may not exist
-           yet, the poster image still displays so the layout never breaks. */
-      });
     };
 
     const closeLightbox = () => {
-      lightbox.classList.remove('active');
+      lightbox.classList.remove('active', 'is-youtube');
       lightboxVideo.pause();
       lightboxVideo.removeAttribute('src');
       lightboxVideo.load();
+      if (lightboxIframe) lightboxIframe.setAttribute('src', ''); // stops YouTube playback
       if (lightboxInner) lightboxInner.style.aspectRatio = '';
       document.body.style.overflow = '';
     };
