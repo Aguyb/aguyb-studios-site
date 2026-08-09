@@ -422,9 +422,16 @@
     checkoutStatusEl.textContent = "";
     try {
       const url = await createCheckoutRedirect(selectedSlot);
+      if (typeof gtag === "function") {
+        gtag("event", "begin_checkout", {
+          currency: "USD",
+          value: currentTotal(),
+          items: [{ item_name: activeServiceName || "Studio Booking", price: currentTotal() }]
+        });
+      }
       window.location.href = url;
     } catch (err) {
-      checkoutStatusEl.textContent = "Couldn't start checkout. Please try again, or email hello@aguybstudios.com.";
+      checkoutStatusEl.textContent = "Couldn't start checkout. Please try again, or email guybertho@aguybstudios.com.";
       checkoutBtnEl.disabled = false;
       checkoutBtnEl.textContent = "Continue to Secure Checkout";
       console.warn("[AGUYB Booking]", err);

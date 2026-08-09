@@ -300,8 +300,14 @@ document.addEventListener('DOMContentLoaded', () => {
         status.textContent = "Thanks, we've received your request and will follow up within one business day.";
         status.classList.add('show', 'success');
         form.reset();
+        if (typeof gtag === 'function') {
+          gtag('event', 'generate_lead', {
+            form_id: form.id || 'unknown_form',
+            page_path: window.location.pathname
+          });
+        }
       } catch (err) {
-        status.textContent = "We couldn't submit this automatically yet. Please email hello@aguybstudios.com directly and we'll take it from there.";
+        status.textContent = "We couldn't submit this automatically yet. Please email guybertho@aguybstudios.com directly and we'll take it from there.";
         status.classList.add('show', 'error');
       } finally {
         btn.textContent = originalLabel;

@@ -638,4 +638,54 @@ instead. If you want genuine live availability for all 4 sets, the fix is
 to create 3 more bookable services in Wix Bookings (one per set, priced
 and add‑on'd the way you want) and add a `serviceId` field to the `sets`
 collection, ask any time and this can be wired the same way Event Filming
-is now.
+is now. sets.html already displays real prices for these 3
+(Executive Podcast Suite $450, Rustic Podcast Set $350, Recording + Live
+Mix Session $156), those numbers are ready to use whenever you want to
+create the matching services.
+
+## SEO foundation, structured data, and analytics
+
+All URLs, the sitemap, and the canonical/Open Graph tags below assume
+this site is served from `https://aguybstudios.com`, the current live
+site at that domain runs on Wix and is treated as the legacy site this
+project will eventually replace. If that changes, re-run the same
+find/replace across every page's `<link rel="canonical">`, `og:url`, and
+the `url` field in each LocalBusiness JSON-LD block, plus `sitemap.xml`
+and `robots.txt`.
+
+- **`sitemap.xml` / `robots.txt`**: list all 17 public pages and disallow
+  the internal `wix-headless-test.html` and `/legal/`. Add new pages to
+  both files as you create them.
+- **Favicon**: `assets/favicon.svg` (brand-matched, deep purple + cyan
+  "A", matches the nav logo mark) plus PNG fallbacks
+  (`favicon-32.png`, `favicon-192.png`, `apple-touch-icon.png`) linked
+  from every page's `<head>`.
+- **Canonical + Open Graph tags**: every page now has a
+  `<link rel="canonical">` and `og:title`/`og:description`/`og:type`/
+  `og:url` (articles already had these from the Wix Blog import and were
+  left untouched, only their canonical tag was added).
+- **Schema.org structured data**: every page has a `LocalBusiness`
+  JSON-LD block (name, address, phone, email, `sameAs` social links).
+  `faq.html` additionally has a `FAQPage` block built from the real 17
+  FAQ items already on the page, if you edit an FAQ's wording in the
+  static HTML, update the matching JSON-LD text too (it's not
+  auto-generated from the accordion markup at runtime).
+- **`404.html`**: a real, on-brand 404 page instead of GitHub
+  Pages'/Vercel's generic one, both hosts serve it automatically for any
+  unmatched path with zero configuration.
+- **Analytics**: a GA4 snippet is on every page with a placeholder
+  Measurement ID (`G-XXXXXXXXXX`), swap it for your real ID in one place
+  by find/replacing `G-XXXXXXXXXX` sitewide once you've created a GA4
+  property at analytics.google.com. Two conversion events are already
+  wired: `generate_lead` fires on a successful contact/booking-request
+  form submission (`main.js`), and `begin_checkout` fires right before a
+  visitor is redirected to Wix's real payment page from the booking modal
+  (`booking-flow.js`).
+- **Fixed while in here**: the footer phone number and the FAQ's "call or
+  text" number were still the placeholder `(904) 555-1234` on every page,
+  now the real number. The contact email was inconsistent, `hello@` in
+  the static HTML/error messages vs. `guybertho@` in the CMS/site
+  settings, standardized on `guybertho@aguybstudios.com` sitewide.
+- **Still open**: the Reviews section is still 3 placeholder testimonials
+  (see "Before this goes live" above), and no live chat or secondary
+  (lighter-weight) lead capture exists yet.
