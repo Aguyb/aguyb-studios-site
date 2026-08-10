@@ -147,10 +147,40 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     lightboxVideo.addEventListener('loadedmetadata', matchVideoAspectRatio);
 
+    // Several video triggers on the site (the homepage "Recent Work" reel,
+    // short-form slideshow, and Studio Tour button) point at local files
+    // under assets/video/ that haven't been uploaded yet -- clicking them
+    // used to open the lightbox around a silently blank/broken <video>.
+    // This builds a small "video coming soon" message on demand and swaps
+    // it in on a real load error, so the failure is visible and on-brand
+    // instead of a dead black box.
+    let lightboxErrorEl = null;
+    const getLightboxErrorEl = () => {
+      if (!lightboxErrorEl && lightboxInner) {
+        lightboxErrorEl = document.createElement('div');
+        lightboxErrorEl.className = 'lightbox-error';
+        lightboxErrorEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg><p>This clip isn&rsquo;t uploaded yet.<br>Check back soon.</p>';
+        lightboxInner.appendChild(lightboxErrorEl);
+      }
+      return lightboxErrorEl;
+    };
+    const showLightboxError = () => {
+      lightboxVideo.style.visibility = 'hidden';
+      getLightboxErrorEl().classList.add('active');
+    };
+    const hideLightboxError = () => {
+      lightboxVideo.style.visibility = '';
+      if (lightboxErrorEl) lightboxErrorEl.classList.remove('active');
+    };
+    lightboxVideo.addEventListener('error', () => {
+      if (lightbox.classList.contains('active') && !lightbox.classList.contains('is-youtube')) showLightboxError();
+    });
+
     const openLightbox = (src, poster, caption, vertical) => {
       if (lightboxInner) lightboxInner.style.aspectRatio = '';
       lightboxCaption.textContent = caption || '';
       if (lightboxInner) lightboxInner.classList.toggle('is-vertical', !!vertical);
+      hideLightboxError();
 
       const ytEmbed = getYouTubeEmbedUrl(src);
       if (ytEmbed) {
@@ -161,8 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (src) lightboxVideo.setAttribute('src', src);
         if (poster) lightboxVideo.setAttribute('poster', poster);
         lightboxVideo.play().catch(() => {
-          /* Autoplay may be blocked or the placeholder video file may not exist
-             yet, the poster image still displays so the layout never breaks. */
+          /* Autoplay may be blocked; the poster image still displays, and a
+             genuinely missing file is caught separately by the error
+             listener above, which swaps in the "coming soon" message. */
         });
       }
 
@@ -177,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lightboxVideo.load();
       if (lightboxIframe) lightboxIframe.setAttribute('src', ''); // stops YouTube playback
       if (lightboxInner) lightboxInner.style.aspectRatio = '';
+      hideLightboxError();
       document.body.style.overflow = '';
     };
 
