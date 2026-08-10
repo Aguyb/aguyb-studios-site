@@ -1,57 +1,410 @@
 {
   "note": "Working keyword database. status: planned | built | live. Update as pages ship. Don't build a page just because a keyword exists here -- check services.json / locations.json policies first (no thin/doorway pages).",
   "keywords": [
-    { "keyword": "podcast studio Jacksonville FL", "category": "studio-rental", "intent": "transactional", "location": "Jacksonville", "priority": "high", "targetUrl": "/podcast-studio-jacksonville.html", "status": "live" },
-    { "keyword": "podcast studio Jacksonville Florida", "category": "studio-rental", "intent": "transactional", "location": "Jacksonville", "priority": "high", "targetUrl": "/podcast-studio-jacksonville.html", "status": "live" },
-    { "keyword": "podcast studio near me", "category": "studio-rental", "intent": "transactional", "location": "Jacksonville", "priority": "high", "targetUrl": "/podcast-studio-jacksonville.html", "status": "live" },
-    { "keyword": "podcast recording studio Jacksonville", "category": "studio-rental", "intent": "transactional", "location": "Jacksonville", "priority": "high", "targetUrl": "/podcast-studio-jacksonville.html", "status": "live" },
-    { "keyword": "video studio Jacksonville FL", "category": "studio-rental", "intent": "transactional", "location": "Jacksonville", "priority": "high", "targetUrl": "/video-studio-jacksonville.html", "status": "planned" },
-    { "keyword": "video studio rental Jacksonville", "category": "studio-rental", "intent": "transactional", "location": "Jacksonville", "priority": "medium", "targetUrl": "/video-studio-jacksonville.html", "status": "planned" },
-    { "keyword": "photography studio Jacksonville", "category": "studio-rental", "intent": "transactional", "location": "Jacksonville", "priority": "low", "targetUrl": "/studio-rental-jacksonville.html", "status": "planned" },
-    { "keyword": "content studio Jacksonville", "category": "studio-rental", "intent": "commercial", "location": "Jacksonville", "priority": "medium", "targetUrl": "/content-studio-jacksonville.html", "status": "planned" },
-    { "keyword": "production studio Jacksonville", "category": "studio-rental", "intent": "commercial", "location": "Jacksonville", "priority": "medium", "targetUrl": "/studio-rental-jacksonville.html", "status": "planned" },
-    { "keyword": "studio rental Jacksonville FL", "category": "studio-rental", "intent": "transactional", "location": "Jacksonville", "priority": "high", "targetUrl": "/studio-rental-jacksonville.html", "status": "planned" },
-    { "keyword": "filming studio Jacksonville", "category": "studio-rental", "intent": "commercial", "location": "Jacksonville", "priority": "low", "targetUrl": "/studio-rental-jacksonville.html", "status": "planned" },
-    { "keyword": "interview studio Jacksonville", "category": "studio-rental", "intent": "commercial", "location": "Jacksonville", "priority": "low", "targetUrl": "/studio-rental-jacksonville.html", "status": "planned" },
-    { "keyword": "professional video studio Jacksonville", "category": "studio-rental", "intent": "commercial", "location": "Jacksonville", "priority": "medium", "targetUrl": "/video-studio-jacksonville.html", "status": "planned" },
-
-    { "keyword": "podcast production Jacksonville", "category": "podcast-production", "intent": "commercial", "location": "Jacksonville", "priority": "high", "targetUrl": "/podcast-studio-jacksonville.html", "status": "live" },
-    { "keyword": "podcast production company Jacksonville", "category": "podcast-production", "intent": "commercial", "location": "Jacksonville", "priority": "high", "targetUrl": "/podcast-studio-jacksonville.html", "status": "live" },
-    { "keyword": "podcast video production Jacksonville", "category": "podcast-production", "intent": "commercial", "location": "Jacksonville", "priority": "medium", "targetUrl": "/podcast-studio-jacksonville.html", "status": "live" },
-    { "keyword": "podcast filming Jacksonville", "category": "podcast-production", "intent": "commercial", "location": "Jacksonville", "priority": "low", "targetUrl": "/podcast-studio-jacksonville.html", "status": "live" },
-    { "keyword": "podcast recording Jacksonville", "category": "podcast-production", "intent": "transactional", "location": "Jacksonville", "priority": "high", "targetUrl": "/podcast-studio-jacksonville.html", "status": "live" },
-    { "keyword": "podcast editing Jacksonville", "category": "podcast-production", "intent": "commercial", "location": "Jacksonville", "priority": "low", "targetUrl": "/podcast-studio-jacksonville.html", "status": "live" },
-    { "keyword": "podcast production services Jacksonville", "category": "podcast-production", "intent": "commercial", "location": "Jacksonville", "priority": "medium", "targetUrl": "/podcast-studio-jacksonville.html", "status": "live" },
-    { "keyword": "podcast studio rental Jacksonville", "category": "podcast-production", "intent": "transactional", "location": "Jacksonville", "priority": "high", "targetUrl": "/podcast-studio-jacksonville.html", "status": "live" },
-
-    { "keyword": "video production Jacksonville FL", "category": "video-production", "intent": "commercial", "location": "Jacksonville", "priority": "high", "targetUrl": "/video-production-jacksonville.html", "status": "planned" },
-    { "keyword": "video production company Jacksonville", "category": "video-production", "intent": "commercial", "location": "Jacksonville", "priority": "high", "targetUrl": "/video-production-jacksonville.html", "status": "planned" },
-    { "keyword": "commercial video production Jacksonville", "category": "video-production", "intent": "commercial", "location": "Jacksonville", "priority": "medium", "targetUrl": "/commercial-video-production.html", "status": "planned" },
-    { "keyword": "corporate video production Jacksonville", "category": "video-production", "intent": "commercial", "location": "Jacksonville", "priority": "medium", "targetUrl": "/corporate-video-production.html", "status": "planned" },
-    { "keyword": "brand video production Jacksonville", "category": "video-production", "intent": "commercial", "location": "Jacksonville", "priority": "low", "targetUrl": "/brand-video-production.html", "status": "planned" },
-    { "keyword": "professional videographer Jacksonville", "category": "video-production", "intent": "commercial", "location": "Jacksonville", "priority": "medium", "targetUrl": "/video-production-jacksonville.html", "status": "planned" },
-    { "keyword": "hire a video production company Jacksonville", "category": "video-production", "intent": "transactional", "location": "Jacksonville", "priority": "high", "targetUrl": "/video-production-jacksonville.html", "status": "planned" },
-
-    { "keyword": "social media content creation Jacksonville", "category": "social-media-content", "intent": "commercial", "location": "Jacksonville", "priority": "medium", "targetUrl": "/social-media-content-jacksonville.html", "status": "planned" },
-    { "keyword": "social media video production Jacksonville", "category": "social-media-content", "intent": "commercial", "location": "Jacksonville", "priority": "medium", "targetUrl": "/social-media-content-jacksonville.html", "status": "planned" },
-    { "keyword": "short form video production Jacksonville", "category": "social-media-content", "intent": "commercial", "location": "Jacksonville", "priority": "low", "targetUrl": "/social-media-content-jacksonville.html", "status": "planned" },
-    { "keyword": "content creation agency Jacksonville", "category": "social-media-content", "intent": "commercial", "location": "Jacksonville", "priority": "low", "targetUrl": "/social-media-content-jacksonville.html", "status": "planned" },
-
-    { "keyword": "on-site podcast production Jacksonville", "category": "on-site-production", "intent": "transactional", "location": "Jacksonville", "priority": "high", "targetUrl": "/on-site-production.html", "status": "live" },
-    { "keyword": "mobile podcast studio Jacksonville", "category": "on-site-production", "intent": "commercial", "location": "Jacksonville", "priority": "medium", "targetUrl": "/on-site-production.html", "status": "live" },
-
-    { "keyword": "how much does a podcast studio cost in Jacksonville", "category": "long-tail", "intent": "informational", "location": "Jacksonville", "priority": "high", "targetUrl": "/podcast-studio-jacksonville.html#pricing", "status": "live" },
-    { "keyword": "podcast studio vs recording at home", "category": "long-tail", "intent": "informational", "location": "Jacksonville", "priority": "medium", "targetUrl": "/blog.html", "status": "planned" },
-    { "keyword": "what is included in a podcast studio rental", "category": "long-tail", "intent": "informational", "location": "Jacksonville", "priority": "high", "targetUrl": "/podcast-studio-jacksonville.html#included", "status": "live" },
-    { "keyword": "how much does video production cost in Jacksonville", "category": "long-tail", "intent": "informational", "location": "Jacksonville", "priority": "medium", "targetUrl": "/pricing.html", "status": "live" },
-    { "keyword": "should I record my podcast in a studio or at home", "category": "long-tail", "intent": "informational", "location": "Jacksonville", "priority": "medium", "targetUrl": "/podcast-studio-jacksonville.html", "status": "live" },
-
-    { "keyword": "podcast studio Jacksonville Beach", "category": "local", "intent": "transactional", "location": "Jacksonville Beach", "priority": "medium", "targetUrl": "/jacksonville-beach-video-production.html", "status": "planned" },
-    { "keyword": "video production Ponte Vedra Beach", "category": "local", "intent": "commercial", "location": "Ponte Vedra Beach", "priority": "medium", "targetUrl": "/ponte-vedra-video-production.html", "status": "planned" },
-    { "keyword": "video production St. Augustine", "category": "local", "intent": "commercial", "location": "St. Augustine", "priority": "medium", "targetUrl": "/st-augustine-video-production.html", "status": "planned" },
-    { "keyword": "video production Orange Park", "category": "local", "intent": "commercial", "location": "Orange Park", "priority": "low", "targetUrl": "/orange-park-video-production.html", "status": "planned" },
-
-    { "keyword": "AGUYB Studios", "category": "brand", "intent": "navigational", "location": "Jacksonville", "priority": "high", "targetUrl": "/", "status": "live" },
-    { "keyword": "AGUYB Studios Jacksonville", "category": "brand", "intent": "navigational", "location": "Jacksonville", "priority": "high", "targetUrl": "/", "status": "live" }
+    {
+      "keyword": "podcast studio Jacksonville FL",
+      "category": "studio-rental",
+      "intent": "transactional",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "podcast studio Jacksonville Florida",
+      "category": "studio-rental",
+      "intent": "transactional",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "podcast studio near me",
+      "category": "studio-rental",
+      "intent": "transactional",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "podcast recording studio Jacksonville",
+      "category": "studio-rental",
+      "intent": "transactional",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "video studio Jacksonville FL",
+      "category": "studio-rental",
+      "intent": "transactional",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/video-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "video studio rental Jacksonville",
+      "category": "studio-rental",
+      "intent": "transactional",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/video-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "photography studio Jacksonville",
+      "category": "studio-rental",
+      "intent": "transactional",
+      "location": "Jacksonville",
+      "priority": "low",
+      "targetUrl": "/studio-rental-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "content studio Jacksonville",
+      "category": "studio-rental",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/content-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "production studio Jacksonville",
+      "category": "studio-rental",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/studio-rental-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "studio rental Jacksonville FL",
+      "category": "studio-rental",
+      "intent": "transactional",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/studio-rental-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "filming studio Jacksonville",
+      "category": "studio-rental",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "low",
+      "targetUrl": "/studio-rental-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "interview studio Jacksonville",
+      "category": "studio-rental",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "low",
+      "targetUrl": "/studio-rental-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "professional video studio Jacksonville",
+      "category": "studio-rental",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/video-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "podcast production Jacksonville",
+      "category": "podcast-production",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "podcast production company Jacksonville",
+      "category": "podcast-production",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "podcast video production Jacksonville",
+      "category": "podcast-production",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "podcast filming Jacksonville",
+      "category": "podcast-production",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "low",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "podcast recording Jacksonville",
+      "category": "podcast-production",
+      "intent": "transactional",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "podcast editing Jacksonville",
+      "category": "podcast-production",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "low",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "podcast production services Jacksonville",
+      "category": "podcast-production",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "podcast studio rental Jacksonville",
+      "category": "podcast-production",
+      "intent": "transactional",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "video production Jacksonville FL",
+      "category": "video-production",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/video-production-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "video production company Jacksonville",
+      "category": "video-production",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/video-production-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "commercial video production Jacksonville",
+      "category": "video-production",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/commercial-video-production.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "corporate video production Jacksonville",
+      "category": "video-production",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/corporate-video-production.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "brand video production Jacksonville",
+      "category": "video-production",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "low",
+      "targetUrl": "/brand-video-production.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "professional videographer Jacksonville",
+      "category": "video-production",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/video-production-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "hire a video production company Jacksonville",
+      "category": "video-production",
+      "intent": "transactional",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/video-production-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "social media content creation Jacksonville",
+      "category": "social-media-content",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/social-media-content-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "social media video production Jacksonville",
+      "category": "social-media-content",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/social-media-content-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "short form video production Jacksonville",
+      "category": "social-media-content",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "low",
+      "targetUrl": "/social-media-content-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "content creation agency Jacksonville",
+      "category": "social-media-content",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "low",
+      "targetUrl": "/social-media-content-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "on-site podcast production Jacksonville",
+      "category": "on-site-production",
+      "intent": "transactional",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/on-site-production.html",
+      "status": "live"
+    },
+    {
+      "keyword": "mobile podcast studio Jacksonville",
+      "category": "on-site-production",
+      "intent": "commercial",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/on-site-production.html",
+      "status": "live"
+    },
+    {
+      "keyword": "how much does a podcast studio cost in Jacksonville",
+      "category": "long-tail",
+      "intent": "informational",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/podcast-studio-jacksonville.html#pricing",
+      "status": "planned"
+    },
+    {
+      "keyword": "podcast studio vs recording at home",
+      "category": "long-tail",
+      "intent": "informational",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/blog.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "what is included in a podcast studio rental",
+      "category": "long-tail",
+      "intent": "informational",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/podcast-studio-jacksonville.html#included",
+      "status": "planned"
+    },
+    {
+      "keyword": "how much does video production cost in Jacksonville",
+      "category": "long-tail",
+      "intent": "informational",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/pricing.html",
+      "status": "live"
+    },
+    {
+      "keyword": "should I record my podcast in a studio or at home",
+      "category": "long-tail",
+      "intent": "informational",
+      "location": "Jacksonville",
+      "priority": "medium",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "podcast studio Jacksonville Beach",
+      "category": "local",
+      "intent": "transactional",
+      "location": "Jacksonville Beach",
+      "priority": "medium",
+      "targetUrl": "/jacksonville-beach-video-production.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "video production Ponte Vedra Beach",
+      "category": "local",
+      "intent": "commercial",
+      "location": "Ponte Vedra Beach",
+      "priority": "medium",
+      "targetUrl": "/ponte-vedra-video-production.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "video production St. Augustine",
+      "category": "local",
+      "intent": "commercial",
+      "location": "St. Augustine",
+      "priority": "medium",
+      "targetUrl": "/st-augustine-video-production.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "video production Orange Park",
+      "category": "local",
+      "intent": "commercial",
+      "location": "Orange Park",
+      "priority": "low",
+      "targetUrl": "/orange-park-video-production.html",
+      "status": "planned"
+    },
+    {
+      "keyword": "AGUYB Studios",
+      "category": "brand",
+      "intent": "navigational",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/",
+      "status": "live"
+    },
+    {
+      "keyword": "AGUYB Studios Jacksonville",
+      "category": "brand",
+      "intent": "navigational",
+      "location": "Jacksonville",
+      "priority": "high",
+      "targetUrl": "/",
+      "status": "live"
+    }
   ]
 }
