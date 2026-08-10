@@ -492,9 +492,21 @@
           const cta = live
             ? `<button type="button" class="btn btn-ghost btn-sm btn-block" data-book-service-id="${esc(live.id)}" data-book-service-name="${esc(s.name)}, $${live.price}" data-book-price="${live.price}" data-book-desc="${esc(s.description)}">Book This Set</button>`
             : `<a href="pricing.html" class="btn btn-ghost btn-sm btn-block">Book This Set</a>`;
+          // The "click any cover to see more photos + what's included" modal
+          // (main.js's window.AguybSetModal) reads its content off these
+          // data-set-* attributes. This used to only render the plain <img>
+          // + play layer with none of them, so the modal silently stopped
+          // working the moment this CMS render replaced the static cards.
+          const images = JSON.stringify([s.posterImage].filter(Boolean));
+          const included = JSON.stringify(Array.isArray(s.included) ? s.included : []);
           return `
           <div class="set-card">
-            <div class="set-media">
+            <div class="set-media" data-set-gallery
+              data-set-name="${esc(s.name)}"
+              data-set-price="${esc((s.description || "").split(" · ")[0] || "")}"
+              data-set-desc="${esc(s.description)}"
+              data-set-images='${esc(images)}'
+              data-set-included='${esc(included)}'>
               <img src="${esc(s.posterImage)}" alt="${esc(s.name)}">
               <div class="set-play-layer" data-video="${esc(s.videoUrl)}" data-poster="${esc(s.posterImage)}" data-caption="${esc(s.name)}">
                 <div class="set-play-btn">${ICON_PLAY}</div>
@@ -509,6 +521,7 @@
         })
         .join("");
       if (window.AguybBookingFlow) window.AguybBookingFlow.bindTriggers();
+      if (window.AguybSetModal) window.AguybSetModal.bindTriggers();
     }
     const sidebarSets = document.querySelector(".sidebar-sets");
     if (sidebarSets) {

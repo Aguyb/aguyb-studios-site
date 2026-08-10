@@ -428,10 +428,20 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.style.overflow = 'hidden';
     };
 
-    document.querySelectorAll('[data-set-gallery]:not([data-set-modal-bound])').forEach(trigger => {
-      trigger.setAttribute('data-set-modal-bound', '');
-      trigger.addEventListener('click', () => openSetModal(trigger));
-    });
+    // Named + idempotent, same pattern as the video/photo lightboxes above,
+    // so cms.js can call this again after renderSets() replaces the
+    // .sets-grid cards with CMS-driven ones -- without this, the modal
+    // trigger only ever bound to the original static cards, and clicking a
+    // cover on the CMS-rendered version (which every real page load hits)
+    // did nothing.
+    const bindSetModalTriggers = () => {
+      document.querySelectorAll('[data-set-gallery]:not([data-set-modal-bound])').forEach(trigger => {
+        trigger.setAttribute('data-set-modal-bound', '');
+        trigger.addEventListener('click', () => openSetModal(trigger));
+      });
+    };
+    bindSetModalTriggers();
+    window.AguybSetModal = { bindTriggers: bindSetModalTriggers };
 
     setModalClose.addEventListener('click', closeSetModal);
     setModal.addEventListener('click', (e) => {
