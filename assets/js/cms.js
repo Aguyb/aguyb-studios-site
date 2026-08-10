@@ -719,6 +719,25 @@
     }
   }
 
+  // "Featured Projects — Recorded Off Site" grid on on-site-production.html.
+  // Fully owner-editable from the Wix dashboard's onsite_featured_projects
+  // collection -- add, remove, or reorder rows there and this grid follows,
+  // no fixed card count.
+  function renderFeaturedProjects(items) {
+    if (!items) return;
+    const grid = document.querySelector(".featured-grid");
+    if (!grid) return;
+    const sorted = items.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+    grid.innerHTML = sorted.map((p) => {
+      const url = resolveWixMediaUrl(p.image);
+      return `
+        <div class="featured-card">
+          <img${url ? ` src="${esc(url)}"` : ` class="img-fallback"`} alt="${esc(p.label || "On-site recording session")}">
+          <span>${esc(p.label || "")}</span>
+        </div>`;
+    }).join("");
+  }
+
   function renderCoverageAreas(areas) {
     if (!areas) return;
     const list = document.querySelector(".coverage-list");
@@ -961,16 +980,18 @@
         if (blocks) renderContentBlocksBooking(blocks);
         renderProcessGrid(processSteps, ".booking-steps", "booking-step glass");
       } else if (PAGE === "onsite") {
-        const [processSteps, onsitePackages, coverageAreas, blocks] = await Promise.all([
+        const [processSteps, onsitePackages, coverageAreas, blocks, featuredProjects] = await Promise.all([
           queryCollection("onsite_process_steps"),
           queryCollection("onsite_packages", "order"),
           queryCollection("coverage_areas", "order"),
-          queryCollection("onsite_blocks")
+          queryCollection("onsite_blocks"),
+          queryCollection("onsite_featured_projects", "order")
         ]);
         if (blocks) renderContentBlocksOnsite(blocks);
         renderProcessGrid(processSteps, "#how-it-works .process-grid");
         renderOnsitePackages(onsitePackages);
         renderCoverageAreas(coverageAreas);
+        renderFeaturedProjects(featuredProjects);
       } else if (PAGE === "faq") {
         const [faqItems, blocks] = await Promise.all([
           queryCollection("faq_items", "order"),
