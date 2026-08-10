@@ -238,6 +238,51 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ---------- Photo lightbox (simple single-image viewer) ----------
+  // Used by any [data-gallery-image] trigger, e.g. the thumbnail strip in
+  // the homepage "Why It Works" section. Kept separate from the video
+  // lightbox above since it has no player/aspect-ratio logic to manage.
+  const photoLightbox = document.getElementById('photoLightbox');
+  if (photoLightbox) {
+    const photoLightboxImg = document.getElementById('photoLightboxImg');
+    const photoLightboxCaption = document.getElementById('photoLightboxCaption');
+    const photoLightboxClose = document.getElementById('photoLightboxClose');
+
+    const openPhotoLightbox = (src, caption) => {
+      if (photoLightboxImg) photoLightboxImg.setAttribute('src', src);
+      if (photoLightboxCaption) photoLightboxCaption.textContent = caption || '';
+      photoLightbox.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closePhotoLightbox = () => {
+      photoLightbox.classList.remove('active');
+      document.body.style.overflow = '';
+    };
+
+    // Named + idempotent so cms.js can re-invoke it after re-rendering a
+    // gallery grid from Wix Data without double-binding static triggers.
+    const bindGalleryTriggers = () => {
+      document.querySelectorAll('[data-gallery-image]:not([data-gallery-bound])').forEach(trigger => {
+        trigger.setAttribute('data-gallery-bound', '');
+        trigger.addEventListener('click', (e) => {
+          e.preventDefault();
+          openPhotoLightbox(trigger.dataset.galleryImage, trigger.dataset.galleryCaption);
+        });
+      });
+    };
+    bindGalleryTriggers();
+    window.AguybPhotoLightbox = { bindTriggers: bindGalleryTriggers };
+
+    if (photoLightboxClose) photoLightboxClose.addEventListener('click', closePhotoLightbox);
+    photoLightbox.addEventListener('click', (e) => {
+      if (e.target === photoLightbox) closePhotoLightbox();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && photoLightbox.classList.contains('active')) closePhotoLightbox();
+    });
+  }
+
   // ---------- Set gallery modal (sets.html "Choose Your Set" cards) ----------
   // The set covers never had real walkthrough video to play, so clicking one
   // opens this modal instead: a small photo gallery of the set plus a
