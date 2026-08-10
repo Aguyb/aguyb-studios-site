@@ -411,6 +411,7 @@
   function renderContentBlocksFaq(blocks) {
     const hero = byBlockKey(blocks, "hero");
     fillHead(document.querySelector(".hero-inner"), hero, { headingSelector: "h1", subSelector: "p" });
+    renderHeroBackground(hero);
 
     const finalCta = byBlockKey(blocks, "final_cta");
     fillHead(document.querySelector(".final-cta"), finalCta);
@@ -421,6 +422,7 @@
   function renderContentBlocksBlog(blocks) {
     const hero = byBlockKey(blocks, "hero");
     fillHead(document.querySelector(".hero-inner"), hero, { headingSelector: "h1", subSelector: "p" });
+    renderHeroBackground(hero);
 
     const sidebarCta = byBlockKey(blocks, "sidebar_cta");
     const cta = document.querySelector(".sidebar-cta");
@@ -440,6 +442,7 @@
   function renderContentBlocksPricing(blocks) {
     const hero = byBlockKey(blocks, "hero");
     fillHead(document.querySelector(".hero-inner"), hero, { headingSelector: "h1", subSelector: "p" });
+    renderHeroBackground(hero);
 
     fillHead(document.querySelector("#included .section-head"), byBlockKey(blocks, "included_intro"));
     fillHead(document.querySelector("#pricing-tiers .section-head"), byBlockKey(blocks, "tiers_intro"));
