@@ -283,6 +283,84 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ---------- Photo gallery carousel (homepage "Why It Works" gallery) ----------
+  // A plain horizontal-scroll-snap track with prev/next arrows and a set of
+  // dot indicators rebuilt from however many .gallery-slide elements are
+  // actually present, so it works whether the static fallback's 4 slides are
+  // showing or cms.js has just re-rendered the track from Wix Data with a
+  // different (owner-editable) number of photos. Not gated behind a
+  // "already bound" flag on the outer container -- cms.js always replaces
+  // the whole .gallery-track (and its slides/arrows go with it), so by the
+  // time this runs again the previous run's elements are already gone and
+  // there is nothing left to double-bind.
+  const bindGalleryCarousels = () => {
+    document.querySelectorAll('.philosophy-gallery').forEach(gallery => {
+      const track = gallery.querySelector('.gallery-track');
+      if (!track) return;
+      const prevBtn = gallery.querySelector('.gallery-prev');
+      const nextBtn = gallery.querySelector('.gallery-next');
+
+      const slides = () => Array.from(track.children);
+
+      const buildDots = () => {
+        const all = slides();
+        all.forEach((slide, i) => {
+          const host = slide.querySelector('.gallery-dots');
+          if (!host) return;
+          host.innerHTML = all.map((_, j) =>
+            `<button type="button" class="gallery-dot${j === i ? ' active' : ''}" data-dot-index="${j}" aria-label="Go to photo ${j + 1}"></button>`
+          ).join('');
+        });
+      };
+
+      const currentIndex = () => {
+        const all = slides();
+        let closest = 0, closestDist = Infinity;
+        all.forEach((s, i) => {
+          const dist = Math.abs(s.offsetLeft - track.scrollLeft);
+          if (dist < closestDist) { closestDist = dist; closest = i; }
+        });
+        return closest;
+      };
+
+      const syncDots = () => {
+        const idx = currentIndex();
+        gallery.querySelectorAll('.gallery-dot').forEach(d => {
+          d.classList.toggle('active', parseInt(d.dataset.dotIndex, 10) === idx);
+        });
+      };
+
+      const goTo = (index) => {
+        const all = slides();
+        if (!all.length) return;
+        const clamped = Math.max(0, Math.min(index, all.length - 1));
+        track.scrollTo({ left: all[clamped].offsetLeft, behavior: 'smooth' });
+      };
+
+      if (prevBtn) prevBtn.addEventListener('click', () => goTo(currentIndex() - 1));
+      if (nextBtn) nextBtn.addEventListener('click', () => goTo(currentIndex() + 1));
+
+      gallery.addEventListener('click', (e) => {
+        const dot = e.target.closest('.gallery-dot');
+        if (dot) {
+          e.preventDefault();
+          goTo(parseInt(dot.dataset.dotIndex, 10));
+        }
+      });
+
+      let scrollTimer = null;
+      track.addEventListener('scroll', () => {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(syncDots, 80);
+      }, { passive: true });
+
+      buildDots();
+      syncDots();
+    });
+  };
+  bindGalleryCarousels();
+  window.AguybGalleryCarousel = { bindTriggers: bindGalleryCarousels };
+
   // ---------- Set gallery modal (sets.html "Choose Your Set" cards) ----------
   // The set covers never had real walkthrough video to play, so clicking one
   // opens this modal instead: a small photo gallery of the set plus a

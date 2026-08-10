@@ -583,8 +583,11 @@
       const caption = `${c.title || ""}${c.subtitle ? " — " + c.subtitle : ""}`;
       return `
         <div class="shortform-card" data-video="${esc(video)}" data-poster="${esc(poster)}" data-caption="${esc(caption)}" data-vertical="true">
-          <img${poster ? ` src="${esc(poster)}"` : ` class="img-fallback"`} alt="Short-form clip cover">
-          <div class="reel-overlay"><div class="reel-play">${ICON_PLAY}</div><b>${esc(c.title)}</b><span>${esc(c.subtitle)}</span></div>
+          <div class="card-photo">
+            <img${poster ? ` src="${esc(poster)}"` : ` class="img-fallback"`} alt="Short-form clip cover">
+            <div class="card-play">${ICON_PLAY}</div>
+          </div>
+          <div class="card-info"><b>${esc(c.title)}</b><span>${esc(c.subtitle)}</span></div>
         </div>`;
     };
     // Duplicate the set once so the CSS scroll animation loops seamlessly,
@@ -609,8 +612,11 @@
       const caption = w.client ? `${captionParts} · Filmed for ${w.client}` : captionParts;
       return `
         <div class="reel-card" data-video="${esc(video)}" data-poster="${esc(poster)}" data-caption="${esc(caption)}">
-          <img${poster ? ` src="${esc(poster)}"` : ` class="img-fallback"`} alt="Podcast episode cover">
-          <div class="reel-overlay"><div class="reel-play">${ICON_PLAY}</div><b>${esc(w.title)}</b><span>${esc(w.subtitle)}</span>${w.client ? `<span class="reel-client">Filmed for ${esc(w.client)}</span>` : ""}</div>
+          <div class="card-photo">
+            <img${poster ? ` src="${esc(poster)}"` : ` class="img-fallback"`} alt="Podcast episode cover">
+            <div class="card-play">${ICON_PLAY}</div>
+          </div>
+          <div class="card-info"><b>${esc(w.title)}</b><span>${esc(w.subtitle)}</span>${w.client ? `<span class="reel-client">Filmed for ${esc(w.client)}</span>` : ""}</div>
         </div>`;
     };
     // Duplicate the set once so the CSS scroll animation loops seamlessly,
@@ -654,22 +660,31 @@
       </div>`).join("");
   }
 
-  // The 4 gallery thumbnails inside the home page's "Why It Works" bento
-  // collage (.philosophy-gallery, next to the .philosophy-media-main hero
-  // shot). Rebinds the photo lightbox afterward via window.AguybPhotoLightbox.
+  // The photo carousel inside the home page's "Why It Works" section
+  // (.philosophy-gallery, next to the .philosophy-media-main hero shot).
+  // Fully owner-editable from the Wix dashboard's home_philosophy_gallery
+  // collection -- add, remove, or reorder rows there and this renders
+  // however many slides exist, no fixed count. Rebinds the photo lightbox
+  // (click a slide to enlarge) and the carousel arrows/dots afterward.
   function renderPhilosophyGallery(items) {
     if (!items) return;
     const gallery = document.querySelector(".philosophy-gallery");
-    if (!gallery) return;
+    const track = gallery ? gallery.querySelector(".gallery-track") : null;
+    if (!gallery || !track) return;
     const sorted = items.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
-    gallery.innerHTML = sorted.map((g) => {
+    track.innerHTML = sorted.map((g) => {
       const url = resolveWixMediaUrl(g.image);
+      const caption = g.caption || "";
       return `
-        <div class="philosophy-gallery-item"${url ? ` data-gallery-image="${esc(url)}" data-gallery-caption="${esc(g.caption || "")}"` : ""}>
-          <img${url ? ` src="${esc(url)}"` : ` class="img-fallback"`} alt="${esc(g.caption || "AGUYB Studios")}">
+        <div class="gallery-slide">
+          <div class="gallery-slide-photo"${url ? ` data-gallery-image="${esc(url)}" data-gallery-caption="${esc(caption)}"` : ""}>
+            <img${url ? ` src="${esc(url)}"` : ` class="img-fallback"`} alt="${esc(caption || "AGUYB Studios")}">
+          </div>
+          <div class="gallery-caption"><span>${esc(caption)}</span><div class="gallery-dots"></div></div>
         </div>`;
     }).join("");
     if (window.AguybPhotoLightbox) window.AguybPhotoLightbox.bindTriggers();
+    if (window.AguybGalleryCarousel) window.AguybGalleryCarousel.bindTriggers();
   }
 
   function renderOnsitePackages(pkgs) {
