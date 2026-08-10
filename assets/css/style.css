@@ -51,6 +51,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 img { max-width: 100%; display: block; }
+/* If a photo fails to load, main.js strips its src and adds this class so
+   the box shows a branded dark gradient instead of the browser's default
+   gray placeholder box (which is what would otherwise sit behind any
+   caption/overlay text and read as "text on a gray background"). Every
+   image-wrapper class below also carries its own background-color as a
+   second safety net for the moment before an image has painted. */
+img.img-fallback {
+  background: linear-gradient(135deg, var(--bg-panel), var(--bg-deep-2));
+  min-height: 80px;
+}
 a { color: inherit; text-decoration: none; }
 ul { list-style: none; }
 button { font-family: inherit; cursor: pointer; }
@@ -439,6 +449,7 @@ h1, h2, h3, h4 {
   overflow: hidden;
   aspect-ratio: 16 / 10;
   border: 1px solid var(--surface-glass-border);
+  background: var(--bg-panel);
   cursor: pointer;
 }
 .reel-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease); }
@@ -551,6 +562,7 @@ h1, h2, h3, h4 {
   overflow: hidden;
   aspect-ratio: 4/3;
   border: 1px solid var(--surface-glass-border);
+  background: var(--bg-panel);
 }
 .philosophy-media img { width: 100%; height: 100%; object-fit: cover; }
 .philosophy-media::after {
@@ -638,7 +650,7 @@ h1, h2, h3, h4 {
   border: 1px solid var(--surface-glass-border);
   background: var(--surface-glass-bg);
 }
-.set-media { position: relative; aspect-ratio: 4/3; overflow: hidden; }
+.set-media { position: relative; aspect-ratio: 4/3; overflow: hidden; background: var(--bg-panel); }
 .set-media img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease); }
 .set-card:hover .set-media img { transform: scale(1.06); }
 .set-play-layer {
@@ -731,6 +743,18 @@ h1, h2, h3, h4 {
 .bundle-features { display: grid; gap: 13px; margin-bottom: 32px; flex: 1; }
 .bundle-features li { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: var(--text-2); }
 .bundle-features svg { width: 16px; height: 16px; stroke: var(--cyan); flex-shrink: 0; margin-top: 2px; }
+/* Optional photo slot at the top of a bundle-card (currently used by the
+   Offsite Package Options cards, imageUrl managed from the onsite_packages
+   collection in Wix Data). Cards without a .bundle-media element are
+   unaffected. */
+.bundle-media {
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  margin: -42px -32px 24px;
+  background: var(--bg-panel);
+}
+.bundle-media img { width: 100%; height: 100%; object-fit: cover; }
 .bundle-note { text-align: center; font-size: 13px; color: var(--text-3); margin-top: 36px; max-width: 560px; margin-left: auto; margin-right: auto; }
 
 /* ==========================================================================
@@ -898,7 +922,7 @@ h1, h2, h3, h4 {
 .included-col svg { width: 15px; height: 15px; stroke: var(--cyan); flex-shrink: 0; margin-top: 3px; }
 
 .featured-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
-.featured-card { position: relative; border-radius: var(--radius-md); overflow: hidden; aspect-ratio: 4/5; border: 1px solid var(--surface-glass-border); }
+.featured-card { position: relative; border-radius: var(--radius-md); overflow: hidden; aspect-ratio: 4/5; border: 1px solid var(--surface-glass-border); background: var(--bg-panel); }
 .featured-card img { width: 100%; height: 100%; object-fit: cover; }
 .featured-card span {
   position: absolute; left: 12px; bottom: 12px; right: 12px;
@@ -957,8 +981,14 @@ h1, h2, h3, h4 {
   border: 1px solid var(--surface-glass-border);
   background: var(--surface-glass-bg);
 }
-.post-media { aspect-ratio: 4/3; overflow: hidden; }
-.post-media img { width: 100%; height: 100%; object-fit: cover; }
+.post-media { aspect-ratio: 4/3; overflow: hidden; background: var(--bg-panel); }
+/* contain, not cover: the real Wix blog covers are graphics with their own
+   baked-in text/logos at whatever aspect ratio they were exported, so
+   cropping to fill a fixed 4/3 box (the old object-fit: cover) was cutting
+   off headlines and logos on any cover that didn't happen to match 4/3.
+   contain always shows the whole image, letterboxed on the branded
+   background above instead of cropped. */
+.post-media img { width: 100%; height: 100%; object-fit: contain; }
 .post-body { padding: 22px 24px 22px 0; display: flex; flex-direction: column; }
 .post-meta { display: flex; gap: 10px; align-items: center; font-size: 11.5px; color: var(--text-3); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
 .post-meta .post-tag { color: var(--cyan); font-weight: 700; }
@@ -998,8 +1028,10 @@ h1, h2, h3, h4 {
 .article-meta .post-tag { color: var(--cyan); font-weight: 700; }
 .article-title { font-size: clamp(26px, 4vw, 38px); line-height: 1.2; margin-bottom: 18px; color: #fff; }
 .article-excerpt { font-size: 16px; color: var(--text-2); margin-bottom: 30px; }
-.article-cover { border-radius: var(--radius-md); overflow: hidden; aspect-ratio: 16/9; margin-bottom: 34px; }
-.article-cover img { width: 100%; height: 100%; object-fit: cover; }
+.article-cover { border-radius: var(--radius-md); overflow: hidden; aspect-ratio: 16/9; margin-bottom: 34px; background: var(--bg-panel); }
+/* Same reasoning as .post-media img: show the whole cover graphic instead
+   of cropping it to force-fit a 16:9 box. */
+.article-cover img { width: 100%; height: 100%; object-fit: contain; }
 .article-body { font-size: 15.5px; line-height: 1.85; color: var(--text-2); }
 .article-body p { margin-bottom: 22px; }
 .article-body p:first-of-type { font-size: 17px; color: var(--text-1); }

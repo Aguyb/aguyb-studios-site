@@ -744,6 +744,7 @@
         <li>${ICON_CHECK} Available within our Jacksonville coverage area</li>`;
       grid.innerHTML = packageCards.map((p) => `
         <div class="bundle-card glass${p.badge ? " featured" : ""}">
+          ${p.imageUrl ? `<div class="bundle-media"><img src="${esc(p.imageUrl)}" alt="${esc(p.name)}"></div>` : ""}
           ${p.badge ? `<div class="bundle-badge">${esc(p.badge)}</div>` : ""}
           <div class="bundle-name">${esc(p.name)}</div>
           <p class="bundle-desc">We bring the podcast setup to you. Record from your office, event, or space with a full mobile setup including cameras, lighting, audio, and an on-site technician.</p>
