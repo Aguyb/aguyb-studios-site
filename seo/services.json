@@ -1,0 +1,60 @@
+{
+  "pillars": [
+    {
+      "id": "studio-rental",
+      "name": "Studio Rental",
+      "description": "Hourly studio rental -- podcast, video and photography sets, fully lit and mic'd.",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "live",
+      "supportingUrls": ["/pricing.html", "/sets.html"],
+      "backedBy": { "wixCollections": ["pricing_tiers", "sets"] }
+    },
+    {
+      "id": "podcast-production",
+      "name": "Podcast Production",
+      "description": "Full-service podcast production: strategy, multi-camera recording, audio, editing, clips, captions, distribution.",
+      "targetUrl": "/podcast-studio-jacksonville.html",
+      "status": "live",
+      "supportingUrls": ["/pricing.html", "/blog.html"],
+      "backedBy": { "wixCollections": ["pricing_tiers", "services"] }
+    },
+    {
+      "id": "video-production",
+      "name": "Video Production",
+      "description": "Commercial, corporate, brand, testimonial and social-media video production.",
+      "targetUrl": "/video-production-jacksonville.html",
+      "status": "planned",
+      "supportingUrls": ["/pricing.html"],
+      "backedBy": { "wixCollections": ["services"] }
+    },
+    {
+      "id": "social-media-content",
+      "name": "Social Media Content",
+      "description": "Monthly content-batching partner -- one production day becomes weeks of short-form content.",
+      "targetUrl": "/social-media-content-jacksonville.html",
+      "status": "planned",
+      "supportingUrls": ["/#bundles"],
+      "backedBy": { "wixCollections": ["bundles", "shortform_clips"] }
+    },
+    {
+      "id": "on-site-production",
+      "name": "On-Site / Mobile Production",
+      "description": "We bring the studio to you -- cameras, lighting and audio at your location.",
+      "targetUrl": "/on-site-production.html",
+      "status": "live",
+      "supportingUrls": [],
+      "backedBy": { "wixCollections": ["onsite_packages", "coverage_areas"] }
+    }
+  ],
+  "industryPagesPolicy": "Only build an industry landing page (healthcare, real estate, legal, financial) when there's a real client project or genuinely unique angle to write about -- guideline explicitly forbids thin pages that just swap the industry keyword. None qualify yet; revisit after the first 2-3 case studies exist.",
+  "realPricing": {
+    "source": "Wix Data: pricing_tiers (verified live)",
+    "studioRentalHourly": [
+      { "duration": "2 hours", "price": 399 },
+      { "duration": "3 hours", "price": 499 },
+      { "duration": "4 hours", "price": 599 },
+      { "duration": "6 hours", "price": 799, "badge": "Most Popular" },
+      { "duration": "8 hours (Full Day)", "price": 999, "badge": "Best Value" }
+    ]
+  }
+}

@@ -3,4 +3,4 @@ Allow: /
 Disallow: /wix-headless-test.html
 Disallow: /legal/
 
-Sitemap: https://aguybstudios.com/sitemap.xml
+Sitemap: https://www.aguybstudios.com/sitemap.xml

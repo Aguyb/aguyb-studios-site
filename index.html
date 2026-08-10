@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AGUYB Studios | Professional Video Production &amp; Podcast Studio in Jacksonville</title>
 <meta name="description" content="AGUYB Studios helps Jacksonville companies create video podcasts, corporate storytelling, testimonials, training videos and explainer content that builds trust and drives growth.">
-<link rel="canonical" href="https://aguybstudios.com/">
+<link rel="canonical" href="https://www.aguybstudios.com/">
 
 <meta property="og:title" content="AGUYB Studios | Professional Video Production in Jacksonville">
 <meta property="og:description" content="From testimonials and training videos to corporate storytelling and explainer videos, AGUYB Studios helps companies create content that builds trust and drives growth.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://aguybstudios.com">
+<meta property="og:url" content="https://www.aguybstudios.com">
 
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
@@ -33,10 +33,14 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "LocalBusiness",
+  "@type": ["Organization", "LocalBusiness", "ProfessionalService"],
+  "@id": "https://www.aguybstudios.com/#organization",
   "name": "AGUYB Studios",
-  "url": "https://aguybstudios.com/",
-  "image": "https://aguybstudios.com/assets/apple-touch-icon.png",
+  "legalName": "AGUYB Studios",
+  "description": "Professional video, podcast and content production studio in Jacksonville, Florida.",
+  "url": "https://www.aguybstudios.com/",
+  "logo": "https://www.aguybstudios.com/assets/apple-touch-icon.png",
+  "image": "https://www.aguybstudios.com/assets/apple-touch-icon.png",
   "telephone": "+1-904-738-4860",
   "email": "guybertho@aguybstudios.com",
   "priceRange": "$$",
@@ -48,11 +52,27 @@
     "postalCode": "32256",
     "addressCountry": "US"
   },
-  "areaServed": "Jacksonville, FL",
+  "areaServed": [
+    { "@type": "City", "name": "Jacksonville, FL" },
+    { "@type": "Place", "name": "Jacksonville Beach, FL" },
+    { "@type": "Place", "name": "Ponte Vedra Beach, FL" },
+    { "@type": "Place", "name": "Orange Park, FL" },
+    { "@type": "Place", "name": "St. Augustine, FL" },
+    { "@type": "Place", "name": "Fernandina Beach, FL" }
+  ],
   "sameAs": [
     "https://www.instagram.com/aguybstudios/",
     "https://www.linkedin.com/company/105215456/"
   ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "AGUYB Studios",
+  "url": "https://www.aguybstudios.com/",
+  "publisher": { "@id": "https://www.aguybstudios.com/#organization" }
 }
 </script>
 </head>
@@ -820,6 +840,7 @@
       <div class="footer-col">
         <h5>Studio</h5>
         <ul>
+          <li><a href="podcast-studio-jacksonville.html">Podcast Studio</a></li>
           <li><a href="#services">What We Build</a></li>
           <li><a href="sets.html">Sets</a></li>
           <li><a href="on-site-production.html">On-Site Production</a></li>

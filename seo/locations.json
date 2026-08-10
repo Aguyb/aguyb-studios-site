@@ -1,0 +1,26 @@
+{
+  "physicalLocation": {
+    "name": "AGUYB Studios",
+    "address": "7825 Baymeadows Way, Jacksonville, FL 32256",
+    "city": "Jacksonville",
+    "region": "FL"
+  },
+  "serviceArea": {
+    "description": "Real, currently-served locations, sourced from the coverage_areas Wix Data collection (used on-site-production.html). Dedicated location pages are only appropriate here, per guideline rule 9/45 — no doorway pages.",
+    "source": "Wix Data: coverage_areas",
+    "areas": [
+      { "name": "Downtown Jacksonville", "hasDedicatedPage": false },
+      { "name": "Jacksonville Beach", "hasDedicatedPage": false, "plannedUrl": "/jacksonville-beach-video-production.html" },
+      { "name": "Ponte Vedra Beach", "hasDedicatedPage": false, "plannedUrl": "/ponte-vedra-video-production.html" },
+      { "name": "Orange Park", "hasDedicatedPage": false, "plannedUrl": "/orange-park-video-production.html" },
+      { "name": "St. Augustine", "hasDedicatedPage": false, "plannedUrl": "/st-augustine-video-production.html" },
+      { "name": "Fernandina Beach", "hasDedicatedPage": false }
+    ],
+    "note": "Guideline also names Atlantic Beach and Neptune Beach. Not yet in the real coverage_areas collection -- add them there first (Wix Data) if genuinely served, don't add to schema/content until confirmed real."
+  },
+  "centralFlorida": {
+    "description": "Referenced narratively as 'serving clients throughout North and Central Florida', never claimed as a physical location. No dedicated city pages unless a real project/case study justifies one with substantial unique content.",
+    "cities": ["Orlando", "Tampa", "Daytona Beach", "Gainesville", "Ocala", "Lake Mary", "Winter Park", "Kissimmee", "Sanford"],
+    "hasDedicatedPages": false
+  }
+}
