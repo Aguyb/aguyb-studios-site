@@ -556,43 +556,50 @@ h1, h2, h3, h4 {
   gap: 60px;
   align-items: center;
 }
+/* Bento-style photo collage: one tall hero shot on the left, a 2x2 grid
+   of clickable gallery photos on the right. Replaces an earlier version
+   that overlaid small thumbnails on top of the hero image. */
 .philosophy-media {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 10px;
+  aspect-ratio: 4/3;
+}
+.philosophy-media-main {
   position: relative;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  aspect-ratio: 4/3;
   border: 1px solid var(--surface-glass-border);
   background: var(--bg-panel);
 }
-.philosophy-media img { width: 100%; height: 100%; object-fit: cover; }
-.philosophy-media::after {
+.philosophy-media-main img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* on-site-production.html's "What This Service Is" section reuses
+   .philosophy-media with just a single photo and no gallery -- let the
+   main image span the full width in that case. */
+.philosophy-media-main:only-child { grid-column: 1 / -1; }
+.philosophy-media-main::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(12, 3, 33, 0.22);
+  background: rgba(12, 3, 33, 0.18);
 }
 .philosophy-gallery {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 14px;
-  z-index: 2;
-  display: flex;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 10px;
 }
 .philosophy-gallery-item {
-  flex: 1;
-  aspect-ratio: 1/1;
+  position: relative;
   border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
-  border: 1.5px solid rgba(255, 255, 255, 0.55);
-  box-shadow: 0 8px 18px -8px rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--surface-glass-border);
   background: var(--bg-panel);
-  transition: transform 0.25s var(--ease), border-color 0.25s;
+  transition: transform 0.25s var(--ease), box-shadow 0.25s;
 }
 .philosophy-gallery-item:hover,
-.philosophy-gallery-item:focus-visible { transform: translateY(-4px); border-color: var(--cyan); }
+.philosophy-gallery-item:focus-visible { transform: scale(1.045); box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.5); z-index: 2; }
 .philosophy-gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .philosophy-quote {
   font-family: 'Poppins', sans-serif;
@@ -1486,7 +1493,10 @@ h1, h2, h3, h4 {
   .process-grid::before { display: none; }
   .bundles-grid, .reviews-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .philosophy-inner { grid-template-columns: 1fr; gap: 40px; }
-  .philosophy-gallery { left: 10px; right: 10px; bottom: 10px; gap: 6px; }
+  .philosophy-media { display: flex; flex-direction: column; aspect-ratio: auto; gap: 8px; }
+  .philosophy-media-main { aspect-ratio: 16/10; }
+  .philosophy-gallery { grid-template-columns: repeat(4, 1fr); grid-template-rows: none; gap: 6px; }
+  .philosophy-gallery-item { aspect-ratio: 1/1; }
   .corporate-panel { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; gap: 40px; }
   .footer-top { grid-template-columns: 1fr 1fr; gap: 36px; }
