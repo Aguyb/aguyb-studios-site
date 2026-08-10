@@ -583,7 +583,7 @@
       const caption = `${c.title || ""}${c.subtitle ? " — " + c.subtitle : ""}`;
       return `
         <div class="shortform-card" data-video="${esc(video)}" data-poster="${esc(poster)}" data-caption="${esc(caption)}" data-vertical="true">
-          <img src="${esc(poster)}" alt="Short-form clip cover">
+          <img${poster ? ` src="${esc(poster)}"` : ` class="img-fallback"`} alt="Short-form clip cover">
           <div class="reel-overlay"><div class="reel-play">${ICON_PLAY}</div><b>${esc(c.title)}</b><span>${esc(c.subtitle)}</span></div>
         </div>`;
     };
@@ -609,7 +609,7 @@
       const caption = w.client ? `${captionParts} · Filmed for ${w.client}` : captionParts;
       return `
         <div class="reel-card" data-video="${esc(video)}" data-poster="${esc(poster)}" data-caption="${esc(caption)}">
-          <img src="${esc(poster)}" alt="Podcast episode cover">
+          <img${poster ? ` src="${esc(poster)}"` : ` class="img-fallback"`} alt="Podcast episode cover">
           <div class="reel-overlay"><div class="reel-play">${ICON_PLAY}</div><b>${esc(w.title)}</b><span>${esc(w.subtitle)}</span>${w.client ? `<span class="reel-client">Filmed for ${esc(w.client)}</span>` : ""}</div>
         </div>`;
     };
@@ -630,7 +630,7 @@
         const photo = resolveWixMediaUrl(g.photoUrl);
         return `
           <div class="guest-photo-card">
-            <img src="${esc(photo)}" alt="${esc(g.name)}">
+            <img${photo ? ` src="${esc(photo)}"` : ` class="img-fallback"`} alt="${esc(g.name)}">
             <div class="guest-caption"><b>${esc(g.name)}</b><span>${esc(g.role)}</span></div>
           </div>`;
       })
@@ -665,8 +665,8 @@
     gallery.innerHTML = sorted.map((g) => {
       const url = resolveWixMediaUrl(g.image);
       return `
-        <div class="philosophy-gallery-item" data-gallery-image="${esc(url)}" data-gallery-caption="${esc(g.caption || "")}">
-          <img src="${esc(url)}" alt="${esc(g.caption || "AGUYB Studios")}">
+        <div class="philosophy-gallery-item"${url ? ` data-gallery-image="${esc(url)}" data-gallery-caption="${esc(g.caption || "")}"` : ""}>
+          <img${url ? ` src="${esc(url)}"` : ` class="img-fallback"`} alt="${esc(g.caption || "AGUYB Studios")}">
         </div>`;
     }).join("");
     if (window.AguybPhotoLightbox) window.AguybPhotoLightbox.bindTriggers();

@@ -313,8 +313,16 @@ h1, h2, h3, h4 {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background:
-    url('https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=2000&q=80') center/cover no-repeat;
+  /* Poster frame auto-extracted by Wix from the real hero video
+     (home_blocks.hero.bgVideoUrl) -- shown until the <video> element
+     paints over it, and as the fallback if video can't play. Solid
+     background-color underneath so nothing looks broken if the poster
+     URL itself ever 404s. */
+  background-color: var(--bg-deep-2);
+  background-image: url('https://static.wixstatic.com/media/059584_7fede80b36ef44509e216c957663c079f000.jpg');
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 .hero-bg::after {
   /* Flat solid wash for text contrast, no gradient blend. */
