@@ -229,6 +229,20 @@
       : "https://video.wixstatic.com/video/" + fileId + "/file";
   }
 
+  // A Wix Media Manager video identifier carries its own auto-extracted
+  // poster frame in a #posterUri=... fragment, e.g.
+  // "wix:video://v1/<fileId>/clip.mp4#posterUri=<fileId>f000.jpg&...". If a
+  // hero block sets bgVideoUrl but leaves bgImageUrl blank (picking a video
+  // straight from Media Manager doesn't require also hand-picking a poster
+  // image), this pulls that built-in frame out so the background/video
+  // poster still has something real to show instead of nothing.
+  function getWixVideoPosterUrl(value) {
+    if (!value) return "";
+    const match = /posterUri=([^&]+)/.exec(value);
+    if (!match) return "";
+    return "https://static.wixstatic.com/media/" + decodeURIComponent(match[1]);
+  }
+
   // Applies a CMS-managed hero background: a video (if bgVideoUrl is set)
   // layered over the existing CSS background-image, or just a swapped-in
   // background image (bgImageUrl). Leaves the section alone if neither is set.
@@ -236,7 +250,7 @@
     const heroBg = document.querySelector(".hero-bg");
     if (!hero || !heroBg) return;
 
-    const imageUrl = resolveWixMediaUrl(hero.bgImageUrl);
+    const imageUrl = resolveWixMediaUrl(hero.bgImageUrl) || getWixVideoPosterUrl(hero.bgVideoUrl);
     if (imageUrl) heroBg.style.backgroundImage = "url('" + imageUrl.replace(/'/g, "%27") + "')";
 
     const videoUrl = resolveWixMediaUrl(hero.bgVideoUrl);
