@@ -609,8 +609,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ---------- Booking page: pre-select set / bundle from query string ----------
-  // Links like booking.html?set=podcast or booking.html?bundle=content-engine
-  // (used throughout the Sets and Bundles sections) land here pre-filled.
+  // Links like booking.html?set=executive-podcast-suite or
+  // booking.html?bundle=content-engine (used throughout the Sets and
+  // Bundles sections) land here pre-filled.
   const setSelect = document.getElementById('bk-set');
   const bundleSelect = document.getElementById('bk-bundle');
   if (setSelect || bundleSelect) {

@@ -1065,6 +1065,13 @@
         renderBundles(bundles);
       } else if (PAGE === "article") {
         const slug = document.body.getAttribute("data-post-slug");
+        const [sets] = await Promise.all([queryCollection("sets", "order")]);
+        // renderSets() only touches "#sets .sets-grid" (not present on
+        // article pages) and ".sidebar-sets" -- this is what keeps the
+        // "Explore Our Sets" sidebar block on every article in sync with
+        // the single sets Wix collection, instead of the hardcoded
+        // placeholder cards each article page used to carry.
+        renderSets(sets);
         if (slug) {
           const post = await queryCollectionOneBy("blog_posts", "slug", slug);
           renderArticlePage(post);
