@@ -197,6 +197,18 @@
       const label = a.getAttribute("aria-label");
       if (label && socialMap[label]) a.setAttribute("href", socialMap[label]);
     });
+
+    // Footer "about" paragraph + bottom-bar tagline used to be a "footer_about"
+    // row duplicated inside every page's content-blocks collection. Since it's
+    // identical sitewide, it now lives once here on the shared site_settings
+    // item instead of being repeated 7 times across the per-page collections.
+    if (s.footerAbout) {
+      document.querySelectorAll(".footer-about p").forEach((p) => { p.textContent = s.footerAbout; });
+    }
+    if (s.footerTagline) {
+      const tagline = document.querySelector(".footer-bottom span:last-child");
+      if (tagline) tagline.textContent = s.footerTagline;
+    }
   }
 
   // ---------- content blocks (headings/paragraphs/ctas) ----------
@@ -252,7 +264,7 @@
   }
 
   function renderContentBlocksHome(blocks) {
-    const hero = byBlockKey(blocks, "home_hero");
+    const hero = byBlockKey(blocks, "hero");
     renderHeroBackground(hero);
     const heroInner = document.querySelector(".hero-inner");
     if (hero && heroInner) {
@@ -294,7 +306,7 @@
     fillHead(document.querySelector("#services .section-head"), byBlockKey(blocks, "services_intro"));
     fillHead(document.querySelector("#sets .section-head"), byBlockKey(blocks, "sets_intro"));
     fillHead(document.querySelector(".why-strip .section-head"), byBlockKey(blocks, "why_intro"));
-    fillHead(document.querySelector("#process .section-head"), byBlockKey(blocks, "process_intro_home"));
+    fillHead(document.querySelector("#process .section-head"), byBlockKey(blocks, "process_intro"));
 
     const bundlesIntro = byBlockKey(blocks, "bundles_intro");
     fillHead(document.querySelector("#bundles .section-head"), bundlesIntro);
@@ -308,8 +320,8 @@
       fillCtas(corporatePanel, corporateBlock);
     }
 
-    fillHead(document.querySelector(".final-cta"), byBlockKey(blocks, "final_cta_home"), { subSelector: ".final-cta p, p" });
-    const finalCtaHome = byBlockKey(blocks, "final_cta_home");
+    fillHead(document.querySelector(".final-cta"), byBlockKey(blocks, "final_cta"), { subSelector: ".final-cta p, p" });
+    const finalCtaHome = byBlockKey(blocks, "final_cta");
     const finalCtaHomeEl = document.querySelector(".final-cta .container");
     if (finalCtaHomeEl && finalCtaHome) fillCtas(finalCtaHomeEl, finalCtaHome);
 
@@ -320,22 +332,13 @@
     if (contactBlock && contactInfo) {
       fillHead(contactInfo, contactBlock, { headingSelector: "h2", subSelector: "p" });
     }
-
-    const footerAbout = byBlockKey(blocks, "footer_about");
-    if (footerAbout) {
-      document.querySelectorAll(".footer-about p").forEach((p) => {
-        if (footerAbout.body) p.textContent = footerAbout.body;
-      });
-      const tagline = document.querySelector(".footer-bottom span:last-child");
-      if (tagline && footerAbout.heading) tagline.textContent = footerAbout.heading;
-    }
   }
 
   function renderContentBlocksBooking(blocks) {
-    const hero = byBlockKey(blocks, "booking_hero");
+    const hero = byBlockKey(blocks, "hero");
     fillHead(document.querySelector(".booking-hero"), hero, { headingSelector: "h1", subSelector: "p" });
 
-    const formIntro = byBlockKey(blocks, "booking_form_intro");
+    const formIntro = byBlockKey(blocks, "form_intro");
     const panel = document.querySelector(".booking-form-panel");
     if (panel && formIntro) {
       const h2 = panel.querySelector("h2");
@@ -343,35 +346,28 @@
       const p = panel.querySelector("p");
       if (p && formIntro.body) p.textContent = formIntro.body;
     }
-
-    const footerAbout = byBlockKey(blocks, "footer_about");
-    if (footerAbout) {
-      document.querySelectorAll(".footer-about p").forEach((p) => {
-        if (footerAbout.body) p.textContent = footerAbout.body;
-      });
-      const tagline = document.querySelector(".footer-bottom span:last-child");
-      if (tagline && footerAbout.heading) tagline.textContent = footerAbout.heading;
-    }
   }
 
   function renderContentBlocksOnsite(blocks) {
     const heroInner = document.querySelector(".hero-inner");
-    const hero = byBlockKey(blocks, "onsite_hero");
+    const hero = byBlockKey(blocks, "hero");
     if (heroInner && hero) {
       fillHead(heroInner, hero, { headingSelector: "h1", subSelector: "p" });
       fillCtas(heroInner, hero);
     }
     renderHeroBackground(hero);
 
+    // The "Track Record" section that used to be heads[0] here was removed
+    // from the page entirely, so this list is now exactly the 4 remaining
+    // .section-head elements in document order -- included, packages,
+    // featured, how-it-works.
     const heads = document.querySelectorAll(".section-head");
-    fillHead(heads[0], byBlockKey(blocks, "onsite_track_record"));
-    fillHead(heads[1], byBlockKey(blocks, "onsite_included_intro"));
-    const packagesIntro = byBlockKey(blocks, "onsite_packages_intro");
-    fillHead(heads[2], packagesIntro);
-    fillHead(heads[3], byBlockKey(blocks, "onsite_featured_intro"));
-    fillHead(heads[4], byBlockKey(blocks, "onsite_how_intro"));
+    fillHead(heads[0], byBlockKey(blocks, "included_intro"));
+    fillHead(heads[1], byBlockKey(blocks, "packages_intro"));
+    fillHead(heads[2], byBlockKey(blocks, "featured_intro"));
+    fillHead(heads[3], byBlockKey(blocks, "how_intro"));
 
-    const whatItIs = byBlockKey(blocks, "onsite_what_it_is");
+    const whatItIs = byBlockKey(blocks, "what_it_is");
     const whatItIsCol = document.querySelector(".philosophy-inner > div:not(.philosophy-media)");
     if (whatItIs && whatItIsCol) {
       const eyebrowEl = whatItIsCol.querySelector(".eyebrow");
@@ -383,7 +379,7 @@
     }
     renderMediaImage(document.querySelector(".philosophy-media"), whatItIs);
 
-    const coverage = byBlockKey(blocks, "onsite_coverage");
+    const coverage = byBlockKey(blocks, "coverage");
     const coverageTextCol = document.querySelector(".coverage-panel > div:not(.coverage-visual)");
     if (coverage && coverageTextCol) {
       fillHead(coverageTextCol, coverage, { headingSelector: "h2", subSelector: "p" });
@@ -391,69 +387,42 @@
       if (note && coverage.body) note.textContent = coverage.body;
     }
 
-    const finalCta = byBlockKey(blocks, "onsite_final_cta");
+    const finalCta = byBlockKey(blocks, "final_cta");
     fillHead(document.querySelector(".final-cta"), finalCta);
     const finalCtaEl = document.querySelector(".final-cta .container");
     if (finalCtaEl && finalCta) fillCtas(finalCtaEl, finalCta);
-
-    const footerAbout = byBlockKey(blocks, "footer_about");
-    if (footerAbout) {
-      document.querySelectorAll(".footer-about p").forEach((p) => {
-        if (footerAbout.body) p.textContent = footerAbout.body;
-      });
-      const tagline = document.querySelector(".footer-bottom span:last-child");
-      if (tagline && footerAbout.heading) tagline.textContent = footerAbout.heading;
-    }
   }
 
   function renderContentBlocksSets(blocks) {
-    const hero = byBlockKey(blocks, "sets_hero");
+    const hero = byBlockKey(blocks, "hero");
     fillHead(document.querySelector(".hero-inner"), hero, { headingSelector: "h1", subSelector: "p" });
     const heroInner = document.querySelector(".hero-inner");
     if (heroInner && hero) fillCtas(heroInner, hero);
 
-    fillHead(document.querySelector("#sets .section-head"), byBlockKey(blocks, "sets_intro"));
-    fillHead(document.querySelector("#guests .section-head"), byBlockKey(blocks, "sets_guests_intro"));
+    fillHead(document.querySelector("#sets .section-head"), byBlockKey(blocks, "intro"));
+    fillHead(document.querySelector("#guests .section-head"), byBlockKey(blocks, "guests_intro"));
 
-    const finalCta = byBlockKey(blocks, "sets_final_cta");
+    const finalCta = byBlockKey(blocks, "final_cta");
     fillHead(document.querySelector(".final-cta"), finalCta);
     const finalCtaEl = document.querySelector(".final-cta .container");
     if (finalCtaEl && finalCta) fillCtas(finalCtaEl, finalCta);
-
-    const footerAbout = byBlockKey(blocks, "footer_about");
-    if (footerAbout) {
-      document.querySelectorAll(".footer-about p").forEach((p) => {
-        if (footerAbout.body) p.textContent = footerAbout.body;
-      });
-      const tagline = document.querySelector(".footer-bottom span:last-child");
-      if (tagline && footerAbout.heading) tagline.textContent = footerAbout.heading;
-    }
   }
 
   function renderContentBlocksFaq(blocks) {
-    const hero = byBlockKey(blocks, "faq_hero");
+    const hero = byBlockKey(blocks, "hero");
     fillHead(document.querySelector(".hero-inner"), hero, { headingSelector: "h1", subSelector: "p" });
 
-    const finalCta = byBlockKey(blocks, "faq_final_cta");
+    const finalCta = byBlockKey(blocks, "final_cta");
     fillHead(document.querySelector(".final-cta"), finalCta);
     const finalCtaEl = document.querySelector(".final-cta .container");
     if (finalCtaEl && finalCta) fillCtas(finalCtaEl, finalCta);
-
-    const footerAbout = byBlockKey(blocks, "footer_about");
-    if (footerAbout) {
-      document.querySelectorAll(".footer-about p").forEach((p) => {
-        if (footerAbout.body) p.textContent = footerAbout.body;
-      });
-      const tagline = document.querySelector(".footer-bottom span:last-child");
-      if (tagline && footerAbout.heading) tagline.textContent = footerAbout.heading;
-    }
   }
 
   function renderContentBlocksBlog(blocks) {
-    const hero = byBlockKey(blocks, "blog_hero");
+    const hero = byBlockKey(blocks, "hero");
     fillHead(document.querySelector(".hero-inner"), hero, { headingSelector: "h1", subSelector: "p" });
 
-    const sidebarCta = byBlockKey(blocks, "blog_sidebar_cta");
+    const sidebarCta = byBlockKey(blocks, "sidebar_cta");
     const cta = document.querySelector(".sidebar-cta");
     if (sidebarCta && cta) {
       const h4 = cta.querySelector("h4");
@@ -466,37 +435,19 @@
         if (sidebarCta.ctaUrl) btn.setAttribute("href", sidebarCta.ctaUrl);
       }
     }
-
-    const footerAbout = byBlockKey(blocks, "footer_about");
-    if (footerAbout) {
-      document.querySelectorAll(".footer-about p").forEach((p) => {
-        if (footerAbout.body) p.textContent = footerAbout.body;
-      });
-      const tagline = document.querySelector(".footer-bottom span:last-child");
-      if (tagline && footerAbout.heading) tagline.textContent = footerAbout.heading;
-    }
   }
 
   function renderContentBlocksPricing(blocks) {
-    const hero = byBlockKey(blocks, "pricing_hero");
+    const hero = byBlockKey(blocks, "hero");
     fillHead(document.querySelector(".hero-inner"), hero, { headingSelector: "h1", subSelector: "p" });
 
-    fillHead(document.querySelector("#included .section-head"), byBlockKey(blocks, "pricing_included_intro"));
-    fillHead(document.querySelector("#pricing-tiers .section-head"), byBlockKey(blocks, "pricing_tiers_intro"));
+    fillHead(document.querySelector("#included .section-head"), byBlockKey(blocks, "included_intro"));
+    fillHead(document.querySelector("#pricing-tiers .section-head"), byBlockKey(blocks, "tiers_intro"));
 
-    const finalCta = byBlockKey(blocks, "pricing_final_cta");
+    const finalCta = byBlockKey(blocks, "final_cta");
     fillHead(document.querySelector(".final-cta"), finalCta);
     const finalCtaEl = document.querySelector(".final-cta .container");
     if (finalCtaEl && finalCta) fillCtas(finalCtaEl, finalCta);
-
-    const footerAbout = byBlockKey(blocks, "footer_about");
-    if (footerAbout) {
-      document.querySelectorAll(".footer-about p").forEach((p) => {
-        if (footerAbout.body) p.textContent = footerAbout.body;
-      });
-      const tagline = document.querySelector(".footer-bottom span:last-child");
-      if (tagline && footerAbout.heading) tagline.textContent = footerAbout.heading;
-    }
   }
 
   // ---------- collection-driven repeating sections ----------
@@ -686,42 +637,39 @@
       .join("");
   }
 
-  function renderProcessSteps(all) {
-    if (!all) return;
-    const forPage = (page) => all.filter((s) => s.page === page).sort((a, b) => (a.stepIndex || 0) - (b.stepIndex || 0));
+  // Generic renderer for the 3 "how it works" step grids (home, onsite,
+  // booking). Each page now has its own dedicated Wix Data collection
+  // (home_process_steps / onsite_process_steps / booking_process_steps)
+  // instead of one shared table filtered client-side by a "page" field.
+  function renderProcessGrid(steps, selector, cardClass) {
+    if (!steps) return;
+    const grid = document.querySelector(selector);
+    if (!grid) return;
+    const sorted = steps.slice().sort((a, b) => (a.order || a.stepIndex || 0) - (b.order || b.stepIndex || 0));
+    grid.innerHTML = sorted.map((s) => `
+      <div class="${cardClass || "process-step"}">
+        <div class="process-index">${String(s.stepIndex).padStart(2, "0")}</div>
+        <h4>${esc(s.title)}</h4>
+        <p>${esc(s.description)}</p>
+      </div>`).join("");
+  }
 
-    const home = forPage("home");
-    const homeGrid = document.querySelector("#process .process-grid");
-    if (homeGrid && home.length) {
-      homeGrid.innerHTML = home.map((s) => `
-        <div class="process-step">
-          <div class="process-index">${String(s.stepIndex).padStart(2, "0")}</div>
-          <h4>${esc(s.title)}</h4>
-          <p>${esc(s.description)}</p>
-        </div>`).join("");
-    }
-
-    const onsite = forPage("onsite");
-    const onsiteGrid = document.querySelector("#how-it-works .process-grid");
-    if (onsiteGrid && onsite.length) {
-      onsiteGrid.innerHTML = onsite.map((s) => `
-        <div class="process-step">
-          <div class="process-index">${String(s.stepIndex).padStart(2, "0")}</div>
-          <h4>${esc(s.title)}</h4>
-          <p>${esc(s.description)}</p>
-        </div>`).join("");
-    }
-
-    const booking = forPage("booking");
-    const bookingGrid = document.querySelector(".booking-steps");
-    if (bookingGrid && booking.length) {
-      bookingGrid.innerHTML = booking.map((s) => `
-        <div class="booking-step glass">
-          <div class="process-index">${String(s.stepIndex).padStart(2, "0")}</div>
-          <h4>${esc(s.title)}</h4>
-          <p>${esc(s.description)}</p>
-        </div>`).join("");
-    }
+  // The 4 gallery thumbnails inside the home page's "Why It Works" bento
+  // collage (.philosophy-gallery, next to the .philosophy-media-main hero
+  // shot). Rebinds the photo lightbox afterward via window.AguybPhotoLightbox.
+  function renderPhilosophyGallery(items) {
+    if (!items) return;
+    const gallery = document.querySelector(".philosophy-gallery");
+    if (!gallery) return;
+    const sorted = items.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+    gallery.innerHTML = sorted.map((g) => {
+      const url = resolveWixMediaUrl(g.image);
+      return `
+        <div class="philosophy-gallery-item" data-gallery-image="${esc(url)}" data-gallery-caption="${esc(g.caption || "")}">
+          <img src="${esc(url)}" alt="${esc(g.caption || "AGUYB Studios")}">
+        </div>`;
+    }).join("");
+    if (window.AguybPhotoLightbox) window.AguybPhotoLightbox.bindTriggers();
   }
 
   function renderOnsitePackages(pkgs) {
@@ -957,73 +905,89 @@
     if (!PAGE) return; // page not opted into CMS rendering (missing data-page)
 
     try {
-      const [navLinks, contentBlocks, siteSettings] = await Promise.all([
+      const [navLinks, siteSettings] = await Promise.all([
         queryCollection("nav_links", "order"),
-        queryCollection("content_blocks"),
         queryCollection("site_settings")
       ]);
 
       renderNav(navLinks);
       renderSiteSettings(siteSettings);
 
+      // Every page below now queries its own dedicated content-blocks
+      // collection (e.g. home_blocks, onsite_blocks) instead of one shared
+      // content_blocks table filtered client-side -- each page's CMS content
+      // lives in its own clearly-labeled table in the Wix Content Manager.
       if (PAGE === "home") {
-        const [services, sets, bundles, reviews, recentWork, shortformClips, processSteps] = await Promise.all([
+        const [services, sets, bundles, reviews, recentWork, shortformClips, processSteps, blocks, gallery] = await Promise.all([
           queryCollection("services", "order"),
           queryCollection("sets", "order"),
           queryCollection("bundles", "order"),
           queryCollection("reviews", "order"),
           queryCollection("recent_work", "order"),
           queryCollection("shortform_clips", "order"),
-          queryCollection("process_steps")
+          queryCollection("home_process_steps"),
+          queryCollection("home_blocks"),
+          queryCollection("home_philosophy_gallery", "order")
         ]);
-        if (contentBlocks) renderContentBlocksHome(contentBlocks);
+        if (blocks) renderContentBlocksHome(blocks);
         renderRecentWork(recentWork);
         renderServices(services);
         renderSets(sets);
         renderBundles(bundles);
         renderReviews(reviews);
         renderShortformClips(shortformClips);
-        renderProcessSteps(processSteps);
+        renderProcessGrid(processSteps, "#process .process-grid");
+        renderPhilosophyGallery(gallery);
       } else if (PAGE === "booking") {
-        const processSteps = await queryCollection("process_steps");
-        if (contentBlocks) renderContentBlocksBooking(contentBlocks);
-        renderProcessSteps(processSteps);
-      } else if (PAGE === "onsite") {
-        const [processSteps, onsitePackages, coverageAreas] = await Promise.all([
-          queryCollection("process_steps"),
-          queryCollection("onsite_packages", "order"),
-          queryCollection("coverage_areas", "order")
+        const [processSteps, blocks] = await Promise.all([
+          queryCollection("booking_process_steps"),
+          queryCollection("booking_blocks")
         ]);
-        if (contentBlocks) renderContentBlocksOnsite(contentBlocks);
-        renderProcessSteps(processSteps);
+        if (blocks) renderContentBlocksBooking(blocks);
+        renderProcessGrid(processSteps, ".booking-steps", "booking-step glass");
+      } else if (PAGE === "onsite") {
+        const [processSteps, onsitePackages, coverageAreas, blocks] = await Promise.all([
+          queryCollection("onsite_process_steps"),
+          queryCollection("onsite_packages", "order"),
+          queryCollection("coverage_areas", "order"),
+          queryCollection("onsite_blocks")
+        ]);
+        if (blocks) renderContentBlocksOnsite(blocks);
+        renderProcessGrid(processSteps, "#how-it-works .process-grid");
         renderOnsitePackages(onsitePackages);
         renderCoverageAreas(coverageAreas);
       } else if (PAGE === "faq") {
-        const faqItems = await queryCollection("faq_items", "order");
-        if (contentBlocks) renderContentBlocksFaq(contentBlocks);
+        const [faqItems, blocks] = await Promise.all([
+          queryCollection("faq_items", "order"),
+          queryCollection("faq_blocks")
+        ]);
+        if (blocks) renderContentBlocksFaq(blocks);
         renderFaq(faqItems);
       } else if (PAGE === "blog") {
-        const [blogPosts, sets] = await Promise.all([
+        const [blogPosts, sets, blocks] = await Promise.all([
           queryCollection("blog_posts", "order"),
-          queryCollection("sets", "order")
+          queryCollection("sets", "order"),
+          queryCollection("blog_blocks")
         ]);
-        if (contentBlocks) renderContentBlocksBlog(contentBlocks);
+        if (blocks) renderContentBlocksBlog(blocks);
         renderBlogPosts(blogPosts);
         renderSets(sets);
       } else if (PAGE === "sets") {
-        const [sets, guests] = await Promise.all([
+        const [sets, guests, blocks] = await Promise.all([
           queryCollection("sets", "order"),
-          queryCollection("notable_guests", "order")
+          queryCollection("notable_guests", "order"),
+          queryCollection("sets_blocks")
         ]);
-        if (contentBlocks) renderContentBlocksSets(contentBlocks);
+        if (blocks) renderContentBlocksSets(blocks);
         renderSets(sets);
         renderNotableGuests(guests);
       } else if (PAGE === "pricing") {
-        const [pricingTiers, bundles] = await Promise.all([
+        const [pricingTiers, bundles, blocks] = await Promise.all([
           queryCollection("pricing_tiers", "order"),
-          queryCollection("bundles", "order")
+          queryCollection("bundles", "order"),
+          queryCollection("pricing_blocks")
         ]);
-        if (contentBlocks) renderContentBlocksPricing(contentBlocks);
+        if (blocks) renderContentBlocksPricing(blocks);
         renderPricingTiers(pricingTiers);
         renderBundles(bundles);
       } else if (PAGE === "article") {
