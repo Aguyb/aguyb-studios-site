@@ -206,6 +206,87 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ---------- Set gallery modal (sets.html "Choose Your Set" cards) ----------
+  // The set covers never had real walkthrough video to play, so clicking one
+  // opens this modal instead: a small photo gallery of the set plus a
+  // plain-language "What's Included" list, read straight off each card's
+  // data-set-* attributes (JSON-encoded arrays for images/included items).
+  const setModal = document.getElementById('setModal');
+  if (setModal) {
+    const setModalClose = document.getElementById('setModalClose');
+    const setModalMainImage = document.getElementById('setModalMainImage');
+    const setModalThumbs = document.getElementById('setModalThumbs');
+    const setModalName = document.getElementById('setModalName');
+    const setModalPrice = document.getElementById('setModalPrice');
+    const setModalDesc = document.getElementById('setModalDesc');
+    const setModalIncluded = document.getElementById('setModalIncluded');
+    const setModalBookBtn = document.getElementById('setModalBookBtn');
+
+    const closeSetModal = () => {
+      setModal.classList.remove('active');
+      document.body.style.overflow = '';
+    };
+
+    const openSetModal = (trigger) => {
+      let images = [];
+      let included = [];
+      try { images = JSON.parse(trigger.dataset.setImages || '[]'); } catch (e) { /* malformed data, fall back to empty */ }
+      try { included = JSON.parse(trigger.dataset.setIncluded || '[]'); } catch (e) { /* malformed data, fall back to empty */ }
+
+      setModalName.textContent = trigger.dataset.setName || '';
+      setModalPrice.textContent = trigger.dataset.setPrice || '';
+      setModalDesc.textContent = trigger.dataset.setDesc || '';
+      setModalIncluded.innerHTML = included.map(item => `<li>${item}</li>`).join('');
+
+      const setMainImage = (src) => {
+        setModalMainImage.setAttribute('src', src);
+        setModalThumbs.querySelectorAll('img').forEach(t => t.classList.toggle('active', t.getAttribute('src') === src));
+      };
+
+      setModalThumbs.innerHTML = images.map((src, i) =>
+        `<img src="${src}" alt="${(trigger.dataset.setName || 'Set photo').replace(/"/g, '&quot;')} ${i + 1}">`
+      ).join('');
+      setModalThumbs.querySelectorAll('img').forEach(t => {
+        t.addEventListener('click', () => setMainImage(t.getAttribute('src')));
+      });
+      if (images[0]) setMainImage(images[0]);
+
+      // Route the modal's "Book This Set" button through the card's real
+      // booking trigger when one exists (data-book-service-id, wired to the
+      // live Wix service), so the same 3-step booking flow opens instead of
+      // just linking to the generic pricing page. Sets that aren't wired to
+      // a real Wix service yet fall back to a plain link to pricing.html.
+      const cardBookTrigger = trigger.closest('.set-card')?.querySelector('[data-book-service-id]');
+      setModalBookBtn.onclick = null;
+      if (cardBookTrigger) {
+        setModalBookBtn.setAttribute('href', 'javascript:void(0)');
+        setModalBookBtn.onclick = (e) => {
+          e.preventDefault();
+          closeSetModal();
+          cardBookTrigger.click();
+        };
+      } else {
+        setModalBookBtn.setAttribute('href', 'pricing.html');
+      }
+
+      setModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+
+    document.querySelectorAll('[data-set-gallery]:not([data-set-modal-bound])').forEach(trigger => {
+      trigger.setAttribute('data-set-modal-bound', '');
+      trigger.addEventListener('click', () => openSetModal(trigger));
+    });
+
+    setModalClose.addEventListener('click', closeSetModal);
+    setModal.addEventListener('click', (e) => {
+      if (e.target === setModal) closeSetModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && setModal.classList.contains('active')) closeSetModal();
+    });
+  }
+
   // ---------- Form submission (contact + booking) ----------
   // Both forms submit straight into the real "Aguyb Studios Leads" form that
   // already lives on the live Wix site (Settings > Forms & Submissions in
