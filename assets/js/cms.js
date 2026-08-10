@@ -73,6 +73,9 @@
   }
   const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>';
   const ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>';
+  // Sets have no video -- covers are photo-only. This is the same 2x2
+  // gallery-grid icon the static markup uses as a "more photos" hint.
+  const ICON_GALLERY = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>';
   const ICON_STAR = '<svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8-6.2 3.8 1.6-7L2 9.2l7.1-.6z"></path></svg>';
   const ICON_CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg>';
   const ICON_SERVICE = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="12" height="12" rx="2"></rect><path d="M16 10l4-2v8l-4-2"></path></svg>';
@@ -514,7 +517,13 @@
           // data-set-* attributes. This used to only render the plain <img>
           // + play layer with none of them, so the modal silently stopped
           // working the moment this CMS render replaced the static cards.
-          const images = JSON.stringify([s.posterImage].filter(Boolean));
+          // Sets are photo-only -- combine the cover (posterImage) with any
+          // extra photos added via the galleryImages field in Wix so the
+          // modal's photo strip shows everything the owner has uploaded.
+          const galleryImages = Array.isArray(s.galleryImages)
+            ? s.galleryImages.map((img) => resolveWixMediaUrl(img)).filter(Boolean)
+            : [];
+          const images = JSON.stringify([s.posterImage, ...galleryImages].filter(Boolean));
           const included = JSON.stringify(Array.isArray(s.included) ? s.included : []);
           return `
           <div class="set-card">
@@ -525,9 +534,7 @@
               data-set-images='${esc(images)}'
               data-set-included='${esc(included)}'>
               <img src="${esc(s.posterImage)}" alt="${esc(s.name)}">
-              <div class="set-play-layer" data-video="${esc(s.videoUrl)}" data-poster="${esc(s.posterImage)}" data-caption="${esc(s.name)}">
-                <div class="set-play-btn">${ICON_PLAY}</div>
-              </div>
+              <div class="set-gallery-badge">${ICON_GALLERY}</div>
             </div>
             <div class="set-body">
               <h4>${esc(s.name)}</h4>
