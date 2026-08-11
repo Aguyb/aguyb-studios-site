@@ -511,7 +511,7 @@
           const live = SET_LIVE_SERVICES[s.bookingParam];
           const cta = live
             ? `<button type="button" class="btn btn-ghost btn-sm btn-block" data-book-service-id="${esc(live.id)}" data-book-service-name="${esc(s.name)}, $${live.price}" data-book-price="${live.price}" data-book-desc="${esc(s.description)}">Book This Set</button>`
-            : `<a href="pricing.html" class="btn btn-ghost btn-sm btn-block">Book This Set</a>`;
+            : `<a href="https://www.aguybstudios.com/pricing" class="btn btn-ghost btn-sm btn-block">Book This Set</a>`;
           // The "click any cover to see more photos + what's included" modal
           // (main.js's window.AguybSetModal) reads its content off these
           // data-set-* attributes. This used to only render the plain <img>
@@ -562,7 +562,7 @@
       sidebarSets.innerHTML = sets
         .sort((a, b) => (a.order || 0) - (b.order || 0))
         .map((s) => `
-          <a class="sidebar-set-card" href="sets.html">
+          <a class="sidebar-set-card" href="https://www.aguybstudios.com/sets">
             <img src="${esc(resolveWixMediaUrl(s.posterImage))}" alt="${esc(s.name)}" loading="lazy">
             <div><b>${esc(s.name)}</b><span>${esc(s.description)}</span></div>
           </a>`)
@@ -582,7 +582,7 @@
         const featureLines = (b.features || "").split("\n").filter(Boolean);
         const cta = b.serviceId
           ? `<button type="button" class="btn ${b.featured ? "btn-primary" : "btn-ghost"} btn-block" data-book-service-id="${esc(b.serviceId)}" data-book-service-name="${esc(b.name)} — ${esc(b.price)}" data-book-price="${priceNum(b.price)}" data-book-desc="${esc(b.tagline || "")}">Check Availability &amp; Book</button>`
-          : `<a href="booking.html?bundle=${esc(b.bookingParam)}" class="btn ${b.featured ? "btn-primary" : "btn-ghost"} btn-block">${b.bookingParam === "corporate-partner" ? "Talk to Our Team" : "Book This Bundle"}</a>`;
+          : `<a href="https://www.aguybstudios.com/booking?bundle=${esc(b.bookingParam)}" class="btn ${b.featured ? "btn-primary" : "btn-ghost"} btn-block">${b.bookingParam === "corporate-partner" ? "Talk to Our Team" : "Book This Bundle"}</a>`;
         return `
           <div class="bundle-card glass${b.featured ? " featured" : ""}">
             ${b.badge ? `<div class="bundle-badge">${esc(b.badge)}</div>` : ""}
@@ -761,7 +761,7 @@
           <div class="bundle-price">${esc(p.price)}</div>
           <div class="bundle-cadence">${esc(p.duration)} &middot; Requires confirmation</div>
           <ul class="bundle-features">${featuresHtml}</ul>
-          <a href="booking.html?bundle=${esc(p.bookingParam)}" class="btn ${p.badge ? "btn-primary" : "btn-ghost"} btn-block">Book This Package</a>
+          <a href="https://www.aguybstudios.com/booking?bundle=${esc(p.bookingParam)}" class="btn ${p.badge ? "btn-primary" : "btn-ghost"} btn-block">Book This Package</a>
         </div>`).join("");
     }
   }
@@ -825,7 +825,7 @@
             <div class="post-meta"><span class="post-tag">${esc(p.category)}</span><span>&middot;</span><span>${esc(p.postDate)}</span></div>
             <h3>${esc(p.title)}</h3>
             <p>${esc(p.excerpt)}</p>
-            <a href="${p.slug ? "articles/" + esc(p.slug) + ".html" : "#"}" class="post-readmore">Read More &rarr;</a>
+            <a href="${p.slug ? "https://www.aguybstudios.com/articles/" + esc(p.slug) : "#"}" class="post-readmore">Read More &rarr;</a>
           </div>
         </article>`)
       .join("");
