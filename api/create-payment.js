@@ -265,6 +265,14 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  // Wix Bookings' own BookedAddOn shape (confirmed against the Create
+  // Booking method schema): { id, quantity } -- "name" is server-populated
+  // and read-only, so we don't send it. This is what makes the chosen
+  // add-ons actually show up on the booking's details in the Wix Booking
+  // Calendar -- previously nothing about add-ons was ever written onto the
+  // Wix booking record at all.
+  const bookedAddOns = chosenAddonIds.map((id) => ({ id, quantity: 1 }));
+
   if (!process.env.SQUARE_ACCESS_TOKEN || !process.env.SQUARE_LOCATION_ID || !process.env.WIX_API_KEY) {
     console.error("[create-payment] missing required environment variables");
     res.status(500).json({ error: "Checkout isn't fully configured yet. Please email guybertho@aguybstudios.com to book." });
@@ -314,10 +322,16 @@ module.exports = async function handler(req, res) {
             phone: contact.phone || ""
           },
           additionalFields: [],
-          totalParticipants: 1
+          totalParticipants: 1,
+          ...(bookedAddOns.length ? { bookedAddOns } : {})
         },
         sendSmsReminder: false,
-        participantNotification: { notifyParticipants: true }
+        participantNotification: { notifyParticipants: true },
+        // skipAddOnValidation: if an add-on's Wix-side group association is
+        // ever slightly out of sync with this file's ALLOWED_ADDONS list,
+        // this keeps the add-on attached instead of hard-failing the whole
+        // booking (per Wix's own documented escape hatch for this).
+        ...(bookedAddOns.length ? { flowControlSettings: { skipAddOnValidation: true } } : {})
       })
     });
     const bookingData = await bookingRes.json();
@@ -402,14 +416,31 @@ module.exports = async function handler(req, res) {
               catalogReference: { catalogItemId: serviceId, appId: WIX_BOOKINGS_APP_ID },
               quantity: 1,
               itemType: { preset: "SERVICE" },
-              price: { amount: total.toFixed(2) },
+              price: { amount: Number(basePrice).toFixed(2) },
               taxInfo: {
                 taxRate: "0",
                 taxAmount: { amount: "0.00" },
-                taxableAmount: { amount: total.toFixed(2) }
+                taxableAmount: { amount: Number(basePrice).toFixed(2) }
               },
               paymentOption: "FULL_PAYMENT_ONLINE"
-            }
+            },
+            // Itemize each add-on separately so the sale record in the Wix
+            // dashboard shows exactly what was booked, not just a lump sum.
+            ...chosenAddonIds.map((id) => {
+              const addon = ALLOWED_ADDONS[id];
+              return {
+                productName: { original: addon.name },
+                quantity: 1,
+                itemType: { preset: "SERVICE" },
+                price: { amount: addon.price.toFixed(2) },
+                taxInfo: {
+                  taxRate: "0",
+                  taxAmount: { amount: "0.00" },
+                  taxableAmount: { amount: addon.price.toFixed(2) }
+                },
+                paymentOption: "FULL_PAYMENT_ONLINE"
+              };
+            })
           ],
           buyerInfo: { email: contact.email },
           channelInfo: { type: "OTHER_PLATFORM" },
