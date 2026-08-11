@@ -149,14 +149,20 @@
     return squarePaymentsPromise;
   }
 
+  // Card.tokenize() takes a CardTokenOptions object with exactly one
+  // recognized field: `billing` (a BillingContact). Earlier code here sent
+  // amount/currencyCode/intent/customerInitiated/sellerKeyedIn/billingContact
+  // -- none of which Card.tokenize() accepts (those belong to the server-side
+  // CreatePayment request, built separately in api/create-payment.js, or to
+  // verifyBuyer()'s ChargeVerifyBuyerDetails, a different call entirely).
+  // Sending those unrecognized fields is what caused Square's SDK to fail
+  // every single tokenize attempt with the generic "An unexpected error
+  // occurred while using Card" -- confirmed against Square's own
+  // CardTokenOptions reference. The `amount` param is kept for API-shape
+  // consistency with tokenizeCard's callers but is intentionally unused now.
   async function tokenizeCard(amount, billingContact) {
     const result = await squareCard.tokenize({
-      amount: amount.toFixed(2),
-      currencyCode: "USD",
-      intent: "CHARGE",
-      customerInitiated: true,
-      sellerKeyedIn: false,
-      billingContact
+      billing: billingContact
     });
     if (result.status !== "OK") {
       const detail = result.errors ? JSON.stringify(result.errors) : result.status;
