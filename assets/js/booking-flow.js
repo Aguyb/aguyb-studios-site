@@ -149,23 +149,24 @@
     return squarePaymentsPromise;
   }
 
-  // Card.tokenize() on this account requires verificationDetails with
-  // billingContact/intent/customerInitiated/sellerKeyedIn -- confirmed
-  // directly by Square's own server-side validation error, which names
-  // exactly these four fields as required when they're absent. (An earlier
-  // pass at this file incorrectly "simplified" this to just `{ billing }`
-  // based on a Web Payments SDK reference page that turned out to document
-  // an incomplete subset of accepted fields -- that broke checkout outright
-  // with an explicit VALIDATION_ERROR. Restored to the full shape below.)
-  async function tokenizeCard(amount, billingContact) {
-    const result = await squareCard.tokenize({
-      amount: amount.toFixed(2),
-      currencyCode: "USD",
-      intent: "CHARGE",
-      customerInitiated: true,
-      sellerKeyedIn: false,
-      billingContact
-    });
+  // Root cause (confirmed live, in-browser, against this exact Square
+  // Sandbox account, via console + network trace -- not guessed):
+  // billingContact/intent/customerInitiated/sellerKeyedIn are an all-or-
+  // nothing bundle. Provide any one of them and Card.tokenize() requires
+  // all four, because providing them opts into Square's embedded buyer
+  // verification (SCA/3DS) flow, which internally calls
+  // POST /v2/analytics/verifications. That specific network call is what
+  // was returning 400 in Sandbox -- confirmed via the Network tab during a
+  // real attempt -- which square.js then surfaces to the page as the
+  // generic, unhelpful "An unexpected error occurred while using Card."
+  // Calling tokenize() with NO verification bundle at all (confirmed via
+  // direct in-browser testing: tokenize() with no argument resolves
+  // cleanly) skips that broken embedded-SCA call entirely and tokenizes
+  // the card normally. SCA/PSD2 buyer verification is an EU/UK regulatory
+  // feature this US-only studio booking doesn't need -- omitting it is the
+  // standard, supported integration pattern, not a workaround.
+  async function tokenizeCard() {
+    const result = await squareCard.tokenize();
     if (result.status !== "OK") {
       const detail = result.errors ? JSON.stringify(result.errors) : result.status;
       throw new Error("Card details couldn't be verified (" + detail + ")");
@@ -745,16 +746,7 @@
     try {
       await initSquare();
 
-      const total = currentTotal();
-      const billingContact = {
-        givenName: contact.firstName,
-        familyName: contact.lastName,
-        email: contact.email,
-        phone: contact.phone,
-        countryCode: "US"
-      };
-
-      const sourceId = await tokenizeCard(total, billingContact);
+      const sourceId = await tokenizeCard();
       await finishCheckout(sourceId, contact);
     } catch (err) {
       checkoutStatusEl.textContent = err && err.message ? err.message : "Something went wrong. Please try again, or email guybertho@aguybstudios.com.";
