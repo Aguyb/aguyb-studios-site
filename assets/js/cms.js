@@ -520,10 +520,20 @@
           // Sets are photo-only -- combine the cover (posterImage) with any
           // extra photos added via the galleryImages field in Wix so the
           // modal's photo strip shows everything the owner has uploaded.
+          // posterImage/galleryImages come straight from the Wix Content
+          // Manager, so they're wix:image://v1/... references, not plain
+          // URLs -- resolveWixMediaUrl() is what turns those into real
+          // static.wixstatic.com URLs a browser can actually load. This was
+          // missed here (unlike every other image field on the site), so it
+          // only "worked" while this collection happened to hold plain URLs;
+          // the moment a real photo got uploaded through the Wix dashboard,
+          // the raw wix:image:// string was landing in <img src> and
+          // silently failing to load.
+          const posterImage = resolveWixMediaUrl(s.posterImage);
           const galleryImages = Array.isArray(s.galleryImages)
             ? s.galleryImages.map((img) => resolveWixMediaUrl(img)).filter(Boolean)
             : [];
-          const images = JSON.stringify([s.posterImage, ...galleryImages].filter(Boolean));
+          const images = JSON.stringify([posterImage, ...galleryImages].filter(Boolean));
           const included = JSON.stringify(Array.isArray(s.included) ? s.included : []);
           return `
           <div class="set-card">
@@ -533,7 +543,7 @@
               data-set-desc="${esc(s.description)}"
               data-set-images='${esc(images)}'
               data-set-included='${esc(included)}'>
-              <img src="${esc(s.posterImage)}" alt="${esc(s.name)}">
+              <img src="${esc(posterImage)}" alt="${esc(s.name)}">
               <div class="set-gallery-badge">${ICON_GALLERY}</div>
             </div>
             <div class="set-body">
@@ -553,7 +563,7 @@
         .sort((a, b) => (a.order || 0) - (b.order || 0))
         .map((s) => `
           <a class="sidebar-set-card" href="sets.html">
-            <img src="${esc(s.posterImage)}" alt="${esc(s.name)}">
+            <img src="${esc(resolveWixMediaUrl(s.posterImage))}" alt="${esc(s.name)}">
             <div><b>${esc(s.name)}</b><span>${esc(s.description)}</span></div>
           </a>`)
         .join("");
