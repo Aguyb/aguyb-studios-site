@@ -543,7 +543,7 @@
               data-set-desc="${esc(s.description)}"
               data-set-images='${esc(images)}'
               data-set-included='${esc(included)}'>
-              <img src="${esc(posterImage)}" alt="${esc(s.name)}">
+              <img src="${esc(posterImage)}" alt="${esc(s.name)}" loading="lazy">
               <div class="set-gallery-badge">${ICON_GALLERY}</div>
             </div>
             <div class="set-body">
@@ -563,7 +563,7 @@
         .sort((a, b) => (a.order || 0) - (b.order || 0))
         .map((s) => `
           <a class="sidebar-set-card" href="sets.html">
-            <img src="${esc(resolveWixMediaUrl(s.posterImage))}" alt="${esc(s.name)}">
+            <img src="${esc(resolveWixMediaUrl(s.posterImage))}" alt="${esc(s.name)}" loading="lazy">
             <div><b>${esc(s.name)}</b><span>${esc(s.description)}</span></div>
           </a>`)
         .join("");
@@ -631,7 +631,7 @@
       return `
         <div class="shortform-card" data-video="${esc(video)}" data-poster="${esc(poster)}" data-caption="${esc(caption)}" data-vertical="true">
           <div class="card-photo">
-            <img${poster ? ` src="${esc(poster)}"` : ` class="img-fallback"`} alt="Short-form clip cover">
+            <img${poster ? ` src="${esc(poster)}"` : ` class="img-fallback"`} alt="Short-form clip cover" loading="lazy">
             <div class="card-play">${ICON_PLAY}</div>
           </div>
           <div class="card-info"><b>${esc(c.title)}</b><span>${esc(c.subtitle)}</span></div>
@@ -660,7 +660,7 @@
       return `
         <div class="reel-card" data-video="${esc(video)}" data-poster="${esc(poster)}" data-caption="${esc(caption)}">
           <div class="card-photo">
-            <img${poster ? ` src="${esc(poster)}"` : ` class="img-fallback"`} alt="Podcast episode cover">
+            <img${poster ? ` src="${esc(poster)}"` : ` class="img-fallback"`} alt="Podcast episode cover" loading="lazy">
             <div class="card-play">${ICON_PLAY}</div>
           </div>
           <div class="card-info"><b>${esc(w.title)}</b><span>${esc(w.subtitle)}</span>${w.client ? `<span class="reel-client">Filmed for ${esc(w.client)}</span>` : ""}</div>
@@ -683,7 +683,7 @@
         const photo = resolveWixMediaUrl(g.photoUrl);
         return `
           <div class="guest-photo-card">
-            <img${photo ? ` src="${esc(photo)}"` : ` class="img-fallback"`} alt="${esc(g.name)}">
+            <img${photo ? ` src="${esc(photo)}"` : ` class="img-fallback"`} alt="${esc(g.name)}" loading="lazy">
             <div class="guest-caption"><b>${esc(g.name)}</b><span>${esc(g.role)}</span></div>
           </div>`;
       })
@@ -725,7 +725,7 @@
       return `
         <div class="gallery-slide">
           <div class="gallery-slide-photo"${url ? ` data-gallery-image="${esc(url)}" data-gallery-caption="${esc(caption)}"` : ""}>
-            <img${url ? ` src="${esc(url)}"` : ` class="img-fallback"`} alt="${esc(caption || "AGUYB Studios")}">
+            <img${url ? ` src="${esc(url)}"` : ` class="img-fallback"`} alt="${esc(caption || "AGUYB Studios")}" loading="lazy">
           </div>
           <div class="gallery-caption"><span>${esc(caption)}</span><div class="gallery-dots"></div></div>
         </div>`;
@@ -754,7 +754,7 @@
         <li>${ICON_CHECK} Available within our Jacksonville coverage area</li>`;
       grid.innerHTML = packageCards.map((p) => `
         <div class="bundle-card glass${p.badge ? " featured" : ""}">
-          ${p.imageUrl ? `<div class="bundle-media"><img src="${esc(p.imageUrl)}" alt="${esc(p.name)}"></div>` : ""}
+          ${p.imageUrl ? `<div class="bundle-media"><img src="${esc(p.imageUrl)}" alt="${esc(p.name)}" loading="lazy"></div>` : ""}
           ${p.badge ? `<div class="bundle-badge">${esc(p.badge)}</div>` : ""}
           <div class="bundle-name">${esc(p.name)}</div>
           <p class="bundle-desc">We bring the podcast setup to you. Record from your office, event, or space with a full mobile setup including cameras, lighting, audio, and an on-site technician.</p>
@@ -779,7 +779,7 @@
       const url = resolveWixMediaUrl(p.image);
       return `
         <div class="featured-card">
-          <img${url ? ` src="${esc(url)}"` : ` class="img-fallback"`} alt="${esc(p.label || "On-site recording session")}">
+          <img${url ? ` src="${esc(url)}"` : ` class="img-fallback"`} alt="${esc(p.label || "On-site recording session")}" loading="lazy">
           <span>${esc(p.label || "")}</span>
         </div>`;
     }).join("");
@@ -820,7 +820,7 @@
       .sort((a, b) => (a.order || 0) - (b.order || 0))
       .map((p) => `
         <article class="post-card reveal">
-          <div class="post-media"><img src="${esc(resolveWixMediaUrl(p.image))}" alt="Blog post cover"></div>
+          <div class="post-media"><img src="${esc(resolveWixMediaUrl(p.image))}" alt="Blog post cover" loading="lazy"></div>
           <div class="post-body">
             <div class="post-meta"><span class="post-tag">${esc(p.category)}</span><span>&middot;</span><span>${esc(p.postDate)}</span></div>
             <h3>${esc(p.title)}</h3>
