@@ -84,6 +84,34 @@ function squareBaseUrl() {
     : "https://connect.squareup.com";
 }
 
+// The client's `location` object is passed straight through from the Wix
+// Time Slots V2 API response (booking-flow.js's listAvailability()), whose
+// `locationType` values ("BUSINESS", "CUSTOM", ...) don't match the enum
+// Create Booking actually accepts on booking.bookedEntity.slot.location
+// (`OWNER_BUSINESS` / `OWNER_CUSTOM` / `CUSTOM` / `UNDEFINED` -- confirmed
+// against Wix's Create Booking schema and code examples). Every booking
+// attempt failed with a 400 "locationType enum must be in [...]" from Wix
+// until this normalization was added.
+const LOCATION_TYPE_MAP = {
+  BUSINESS: "OWNER_BUSINESS",
+  OWNER_BUSINESS: "OWNER_BUSINESS",
+  CUSTOM: "CUSTOM",
+  OWNER_CUSTOM: "OWNER_CUSTOM",
+  CUSTOMER: "CUSTOM"
+};
+function normalizeLocation(loc) {
+  if (!loc) return undefined;
+  const mapped = LOCATION_TYPE_MAP[loc.locationType];
+  return {
+    id: loc.id,
+    name: loc.name,
+    formattedAddress: loc.formattedAddress,
+    // Omit locationType entirely rather than send a value Wix will reject --
+    // Create Booking can usually infer it from the location id anyway.
+    ...(mapped ? { locationType: mapped } : {})
+  };
+}
+
 async function declineBooking(id, revision) {
   try {
     await fetch("https://www.wixapis.com/_api/bookings-service/v2/bookings/" + id + "/decline", {
@@ -190,7 +218,7 @@ module.exports = async function handler(req, res) {
               startDate,
               endDate,
               timezone: TIMEZONE,
-              location: bookingLocation || undefined
+              location: normalizeLocation(bookingLocation)
             },
             title: serviceDef.name,
             tags: ["INDIVIDUAL"]
