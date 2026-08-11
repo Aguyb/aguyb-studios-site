@@ -70,6 +70,15 @@ const ALLOWED_ADDONS = {
   "7f4c8aa1-3be7-4412-bb6f-13ae612f29ef": { name: "Graphics motion (once)", price: 200 }
 };
 
+// Every addon-enabled service shares this single Wix add-on group
+// ("Studio Rental Weekday") -- confirmed live via List Add On Groups By
+// Service Id against all 5 addon-enabled service IDs above, which all
+// resolved to this same groupId. Create Booking's bookedAddOns entries
+// require a valid groupId GUID (Wix rejects the booking outright without
+// one -- "groupId is not a valid GUID" -- confirmed via a live production
+// error after the first version of this shipped without it).
+const ADDON_GROUP_ID = "82b5c720-2264-4cc8-ae2f-10f89d15eb57";
+
 function wixHeaders() {
   return {
     "Content-Type": "application/json",
@@ -285,12 +294,14 @@ module.exports = async function handler(req, res) {
   }
 
   // Wix Bookings' own BookedAddOn shape (confirmed against the Create
-  // Booking method schema): { id, quantity } -- "name" is server-populated
-  // and read-only, so we don't send it. This is what makes the chosen
-  // add-ons actually show up on the booking's details in the Wix Booking
-  // Calendar -- previously nothing about add-ons was ever written onto the
-  // Wix booking record at all.
-  const bookedAddOns = chosenAddonIds.map((id) => ({ id, quantity: 1 }));
+  // Booking method schema): { id, groupId, quantity } -- "name" is
+  // server-populated and read-only, so we don't send it. This is what
+  // makes the chosen add-ons actually show up on the booking's details in
+  // the Wix Booking Calendar -- previously nothing about add-ons was ever
+  // written onto the Wix booking record at all. groupId is required (see
+  // ADDON_GROUP_ID above) even though it isn't obviously required from the
+  // method schema alone -- Wix's live validation rejects it otherwise.
+  const bookedAddOns = chosenAddonIds.map((id) => ({ id, groupId: ADDON_GROUP_ID, quantity: 1 }));
 
   if (!process.env.SQUARE_ACCESS_TOKEN || !process.env.SQUARE_LOCATION_ID || !process.env.WIX_API_KEY) {
     console.error("[create-payment] missing required environment variables");
@@ -355,8 +366,18 @@ module.exports = async function handler(req, res) {
     });
     const bookingData = await bookingRes.json();
     if (!bookingRes.ok || !bookingData.booking) {
-      console.error("[create-payment] create booking failed", bookingData);
-      res.status(409).json({ error: "That time just became unavailable. Please pick another slot." });
+      console.error("[create-payment] create booking failed", bookingRes.status, JSON.stringify(bookingData));
+      // Only Wix's actual 409 (slot taken / double-booking conflict) gets
+      // the "unavailable, pick another slot" message. Everything else
+      // (validation errors, bad request shape, etc.) gets a distinct,
+      // honest error instead of silently mislabeling it as an availability
+      // problem -- that mislabeling is exactly what made a real bug (an
+      // add-on validation failure) look like a scheduling issue.
+      if (bookingRes.status === 409) {
+        res.status(409).json({ error: "That time just became unavailable. Please pick another slot." });
+      } else {
+        res.status(502).json({ error: "Couldn't complete your booking. Please try again or email guybertho@aguybstudios.com." });
+      }
       return;
     }
     bookingId = bookingData.booking.id;
