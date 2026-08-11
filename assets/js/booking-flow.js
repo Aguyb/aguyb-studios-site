@@ -21,6 +21,17 @@
    live before this was added. The proxy cross-checks every sibling
    schedule and filters those slots out server-side. See README > "Real
    booking" for the full explanation.
+
+   Payment methods: the card element (Square Card) is always available.
+   Google Pay and Cash App Pay are attached alongside it on step 3 and
+   quietly hide themselves if the buyer's browser/device/account doesn't
+   support them -- same pattern Square's own docs use. All three methods
+   produce an interchangeable Square "source id" token, so they all submit
+   through the exact same /api/create-payment endpoint; no server changes
+   were needed to add them. Apple Pay isn't wired up yet -- it requires a
+   one-time manual domain-verification step in the Square Developer
+   Console (uploading a certificate to /.well-known/) before it can be
+   added the same way.
    ========================================================================== */
 
 (function () {
@@ -154,6 +165,70 @@
     return result.token;
   }
 
+  // ---------- Square digital wallets (Google Pay + Cash App Pay) ----------
+  // Both are optional -- if the buyer's browser/device/Square account
+  // doesn't support one, its init throws and we just hide that button and
+  // fall back to the always-available card element. Re-run every time step
+  // 3 is (re)entered because the PaymentRequest bakes in the dollar total
+  // at creation time and Square's own docs note Cash App Pay in particular
+  // "doesn't support changing or updating the options" afterward -- so if
+  // the visitor goes back and changes add-ons, we rebuild both wallets
+  // against the new total rather than risk charging the old one.
+  let squareGooglePay = null;
+  let squareCashAppPay = null;
+  let digitalWalletsInitPromise = Promise.resolve();
+
+  function initDigitalWallets() {
+    digitalWalletsInitPromise = digitalWalletsInitPromise
+      .catch(() => {})
+      .then(async () => {
+        let payments;
+        try {
+          ({ payments } = await initSquare());
+        } catch (err) {
+          return; // Card init already failed; that error surfaces elsewhere.
+        }
+
+        const total = currentTotal();
+        const paymentRequest = payments.paymentRequest({
+          countryCode: "US",
+          currencyCode: "USD",
+          total: { amount: total.toFixed(2), label: "Total" }
+        });
+
+        googlePayButtonEl.innerHTML = "";
+        googlePayButtonEl.hidden = true;
+        squareGooglePay = null;
+        try {
+          squareGooglePay = await payments.googlePay(paymentRequest);
+          await squareGooglePay.attach("#google-pay-button");
+          googlePayButtonEl.hidden = false;
+        } catch (err) {
+          console.warn("[AGUYB Booking] Google Pay unavailable", err);
+        }
+
+        cashAppButtonEl.innerHTML = "";
+        cashAppButtonEl.hidden = true;
+        squareCashAppPay = null;
+        try {
+          squareCashAppPay = await payments.cashAppPay(paymentRequest, {
+            redirectURL: window.location.href,
+            referenceId: "aguyb-" + Date.now()
+          });
+          await squareCashAppPay.attach("#cash-app-pay-button");
+          squareCashAppPay.addEventListener("ontokenization", handleCashAppTokenization);
+          cashAppButtonEl.hidden = false;
+        } catch (err) {
+          console.warn("[AGUYB Booking] Cash App Pay unavailable", err);
+        }
+
+        const anyWallet = !googlePayButtonEl.hidden || !cashAppButtonEl.hidden;
+        walletsRowEl.hidden = !anyWallet;
+        walletsDividerEl.hidden = !anyWallet;
+      });
+    return digitalWalletsInitPromise;
+  }
+
   async function submitBookingAndPayment(sourceId) {
     const res = await fetch("/api/create-payment", {
       method: "POST",
@@ -180,6 +255,119 @@
       throw new Error(data.error || "Payment couldn't be completed. Please try again.");
     }
     return data;
+  }
+
+  // ---------- shared checkout completion (card + Google Pay + Cash App Pay) ----------
+  // All three payment methods end up here with a Square source-id token --
+  // the server side (api/create-payment.js) doesn't care which method
+  // produced it. One in-flight guard covers all three entry points so a
+  // double-click or a stray Cash App Pay tokenization can't submit twice.
+  let checkoutInFlight = false;
+
+  function validateContact() {
+    const firstName = contactFirstNameEl.value.trim();
+    const email = contactEmailEl.value.trim();
+    if (!firstName || !email) {
+      checkoutStatusEl.textContent = "Please enter your name and email.";
+      if (!firstName) contactFirstNameEl.focus();
+      else contactEmailEl.focus();
+      return null;
+    }
+    return { firstName, lastName: contactLastNameEl.value.trim(), email, phone: contactPhoneEl.value.trim() };
+  }
+
+  function setCheckoutBusy(busy, label) {
+    checkoutInFlight = busy;
+    checkoutBtnEl.disabled = busy;
+    if (label) checkoutBtnEl.textContent = label;
+    modalEl.classList.toggle("booking-checkout-busy", busy);
+  }
+
+  async function finishCheckout(sourceId, contact) {
+    const total = currentTotal();
+    if (typeof gtag === "function") {
+      gtag("event", "begin_checkout", {
+        currency: "USD",
+        value: total,
+        items: [{ item_name: activeServiceName || "Studio Booking", price: total }]
+      });
+    }
+
+    const result = await submitBookingAndPayment(sourceId);
+
+    if (typeof gtag === "function") {
+      gtag("event", "purchase", {
+        currency: "USD",
+        value: result.amount || total,
+        transaction_id: result.bookingId
+      });
+    }
+
+    const successDetailEl = modalEl.querySelector(".booking-success-detail");
+    successDetailEl.textContent =
+      "A confirmation for " + (activeServiceName || "your session") + " is on its way to " + contact.email + ".";
+    reviewFormEl.hidden = true;
+    successPanelEl.hidden = false;
+  }
+
+  async function handleGooglePayClick() {
+    if (checkoutInFlight) return;
+    if (!selectedSlot) {
+      goToStep(1);
+      return;
+    }
+    if (!squareGooglePay) return;
+    const contact = validateContact();
+    if (!contact) return;
+
+    setCheckoutBusy(true, "Processing…");
+    checkoutStatusEl.textContent = "";
+    try {
+      const result = await squareGooglePay.tokenize();
+      if (result.status !== "OK") {
+        const detail = result.errors ? JSON.stringify(result.errors) : result.status;
+        throw new Error("Google Pay couldn't complete (" + detail + ")");
+      }
+      await finishCheckout(result.token, contact);
+    } catch (err) {
+      checkoutStatusEl.textContent = err && err.message ? err.message : "Google Pay couldn't complete. Please try again.";
+      console.warn("[AGUYB Booking] Google Pay", err);
+    } finally {
+      setCheckoutBusy(false, "Pay & Book");
+    }
+  }
+
+  function handleCashAppPayClick() {
+    if (checkoutInFlight) return;
+    if (!selectedSlot) {
+      goToStep(1);
+      return;
+    }
+    const contact = validateContact();
+    if (!contact) return;
+    checkoutStatusEl.textContent = "Complete the payment in Cash App to finish booking…";
+  }
+
+  async function handleCashAppTokenization(event) {
+    if (checkoutInFlight) return;
+    const { tokenResult, error } = event.detail || {};
+    if (error || !tokenResult || tokenResult.status !== "OK") {
+      checkoutStatusEl.textContent = "Cash App Pay couldn't complete. Please try again.";
+      console.warn("[AGUYB Booking] Cash App Pay", error || tokenResult);
+      return;
+    }
+    const contact = validateContact();
+    if (!contact) return;
+
+    setCheckoutBusy(true, "Processing…");
+    try {
+      await finishCheckout(tokenResult.token, contact);
+    } catch (err) {
+      checkoutStatusEl.textContent = err && err.message ? err.message : "Something went wrong. Please try again, or email guybertho@aguybstudios.com.";
+      console.warn("[AGUYB Booking] Cash App Pay", err);
+    } finally {
+      setCheckoutBusy(false, "Pay & Book");
+    }
   }
 
   // ---------- formatting helpers ----------
@@ -227,6 +415,7 @@
   let reviewNameEl, reviewDescEl, reviewRowsEl;
   let checkoutBtnEl, checkoutStatusEl;
   let contactFirstNameEl, contactLastNameEl, contactEmailEl, contactPhoneEl;
+  let walletsRowEl, walletsDividerEl, googlePayButtonEl, cashAppButtonEl;
   let reviewFormEl, successPanelEl;
   let stepDots = [];
 
@@ -292,6 +481,11 @@
       '        <input type="email" class="booking-contact-email" placeholder="Email" autocomplete="email" required>' +
       '        <input type="tel" class="booking-contact-phone" placeholder="Phone" autocomplete="tel">' +
       "      </div>" +
+      '      <div class="booking-wallets-row" hidden>' +
+      '        <div id="google-pay-button" hidden></div>' +
+      '        <div id="cash-app-pay-button" hidden></div>' +
+      "      </div>" +
+      '      <div class="booking-wallets-divider" hidden>Or pay with card</div>' +
       '      <label class="booking-card-label">Card details</label>' +
       '      <div id="square-card-container" class="booking-card-container"></div>' +
       '      <div class="booking-step-actions">' +
@@ -336,6 +530,10 @@
     contactLastNameEl = modalEl.querySelector(".booking-contact-last");
     contactEmailEl = modalEl.querySelector(".booking-contact-email");
     contactPhoneEl = modalEl.querySelector(".booking-contact-phone");
+    walletsRowEl = modalEl.querySelector(".booking-wallets-row");
+    walletsDividerEl = modalEl.querySelector(".booking-wallets-divider");
+    googlePayButtonEl = modalEl.querySelector("#google-pay-button");
+    cashAppButtonEl = modalEl.querySelector("#cash-app-pay-button");
     reviewFormEl = modalEl.querySelector(".booking-review-form");
     successPanelEl = modalEl.querySelector(".booking-success-panel");
 
@@ -358,6 +556,8 @@
       btn.addEventListener("click", () => goToStep(parseInt(btn.getAttribute("data-next-to"), 10)));
     });
     checkoutBtnEl.addEventListener("click", handleCheckout);
+    googlePayButtonEl.addEventListener("click", handleGooglePayClick);
+    cashAppButtonEl.addEventListener("click", handleCashAppPayClick);
     modalEl.querySelector(".booking-success-close").addEventListener("click", closeModal);
   }
 
@@ -383,6 +583,10 @@
       // the card element is ready by the time the visitor finishes typing
       // their contact details. Failures surface when they hit Pay & Book.
       initSquare().catch((err) => console.warn("[AGUYB Booking] Square init failed", err));
+      // Google Pay / Cash App Pay are (re)built every time step 3 is
+      // reached so their baked-in total always matches the current
+      // add-on selection, even if the visitor went back and changed it.
+      initDigitalWallets().catch((err) => console.warn("[AGUYB Booking] Digital wallets init failed", err));
     }
   }
 
@@ -410,6 +614,10 @@
     successPanelEl.hidden = true;
     checkoutBtnEl.disabled = false;
     checkoutBtnEl.textContent = "Pay & Book";
+    walletsRowEl.hidden = true;
+    walletsDividerEl.hidden = true;
+    squareGooglePay = null;
+    squareCashAppPay = null;
     goToStep(1);
     modalEl.classList.add("active");
     document.body.style.overflow = "hidden";
@@ -515,21 +723,15 @@
   }
 
   async function handleCheckout() {
+    if (checkoutInFlight) return;
     if (!selectedSlot) {
       goToStep(1);
       return;
     }
-    const firstName = contactFirstNameEl.value.trim();
-    const email = contactEmailEl.value.trim();
-    if (!firstName || !email) {
-      checkoutStatusEl.textContent = "Please enter your name and email.";
-      if (!firstName) contactFirstNameEl.focus();
-      else contactEmailEl.focus();
-      return;
-    }
+    const contact = validateContact();
+    if (!contact) return;
 
-    checkoutBtnEl.disabled = true;
-    checkoutBtnEl.textContent = "Processing…";
+    setCheckoutBusy(true, "Processing…");
     checkoutStatusEl.textContent = "";
 
     try {
@@ -537,44 +739,20 @@
 
       const total = currentTotal();
       const billingContact = {
-        givenName: firstName,
-        familyName: contactLastNameEl.value.trim(),
-        email,
-        phone: contactPhoneEl.value.trim(),
+        givenName: contact.firstName,
+        familyName: contact.lastName,
+        email: contact.email,
+        phone: contact.phone,
         countryCode: "US"
       };
 
       const sourceId = await tokenizeCard(total, billingContact);
-
-      if (typeof gtag === "function") {
-        gtag("event", "begin_checkout", {
-          currency: "USD",
-          value: total,
-          items: [{ item_name: activeServiceName || "Studio Booking", price: total }]
-        });
-      }
-
-      const result = await submitBookingAndPayment(sourceId);
-
-      if (typeof gtag === "function") {
-        gtag("event", "purchase", {
-          currency: "USD",
-          value: result.amount || total,
-          transaction_id: result.bookingId
-        });
-      }
-
-      const successDetailEl = modalEl.querySelector(".booking-success-detail");
-      successDetailEl.textContent =
-        "A confirmation for " + (activeServiceName || "your session") + " is on its way to " + email + ".";
-      reviewFormEl.hidden = true;
-      successPanelEl.hidden = false;
+      await finishCheckout(sourceId, contact);
     } catch (err) {
       checkoutStatusEl.textContent = err && err.message ? err.message : "Something went wrong. Please try again, or email guybertho@aguybstudios.com.";
       console.warn("[AGUYB Booking]", err);
     } finally {
-      checkoutBtnEl.disabled = false;
-      checkoutBtnEl.textContent = "Pay & Book";
+      setCheckoutBusy(false, "Pay & Book");
     }
   }
 
