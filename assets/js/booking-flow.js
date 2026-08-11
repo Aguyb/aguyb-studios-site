@@ -1,16 +1,19 @@
 /* ==========================================================================
-   AGUYB STUDIOS - Real Booking Flow (Wix Bookings + Headless Redirects)
+   AGUYB STUDIOS - Real Booking Flow (Wix Bookings + Square checkout)
    ==========================================================================
    A 3-step guided flow: 1) pick a REAL available date/time pulled live from
    Wix Bookings, 2) choose real add-ons (same ones configured on the
    service in Wix, with live-updating pricing) to see an estimated total,
-   3) review a summary (service, date/time, extras, total) before handing
-   off to Wix's own secure, hosted checkout page to confirm the same
-   extras, fill in details and pay. This file never touches payment
-   details itself: the very last step is always a redirect to a real
-   wixapis.com checkout URL, generated fresh for that exact slot. Uses the
-   same anonymous Wix Headless visitor token pattern as main.js and
-   cms.js. See README > "Real booking" for the full explanation.
+   3) review a summary, enter contact info, and pay by card right here in
+   the modal via the Square Web Payments SDK -- nothing ever redirects off
+   aguybstudios.com. On a successful charge, a Vercel serverless function
+   (api/create-payment.js) creates and confirms the booking in Wix and
+   logs a Wix order, so it still shows up in the Wix dashboard for
+   invoicing/reporting even though Square is the actual payment processor.
+   Availability lookups still use the anonymous Wix Headless visitor
+   token pattern shared with main.js and cms.js -- only the old
+   redirect-to-Wix-checkout step was replaced. See README > "Real booking"
+   for the full explanation.
    ========================================================================== */
 
 (function () {
@@ -87,40 +90,111 @@
     return data.timeSlots || [];
   }
 
-  async function createCheckoutRedirect(timeSlot) {
-    const token = await getVisitorToken();
-    const slotAvailability = {
-      slot: {
-        serviceId: timeSlot.serviceId,
-        scheduleId: timeSlot.scheduleId,
-        startDate: timeSlot.localStartDate,
-        endDate: timeSlot.localEndDate,
-        timezone: SITE_TIMEZONE,
-        location: timeSlot.location
-      },
-      bookable: timeSlot.bookable,
-      totalSpots: timeSlot.totalCapacity,
-      openSpots: timeSlot.remainingCapacity,
-      bookingPolicyViolations: timeSlot.bookingPolicyViolations
-    };
+  // ---------- Square Web Payments SDK (in-page checkout) ----------
+  // Loaded lazily the first time a visitor opens the booking modal, not on
+  // every page load, since most visitors browsing the site never book.
+  let squareConfigPromise = null;
+  let squarePaymentsPromise = null;
+  let squareCard = null;
 
-    const res = await fetch("https://www.wixapis.com/headless/v1/redirect-session", {
+  function fetchSquareConfig() {
+    if (!squareConfigPromise) {
+      squareConfigPromise = fetch("/api/square-config")
+        .then((res) => {
+          if (!res.ok) throw new Error("Could not load payment configuration");
+          return res.json();
+        });
+    }
+    return squareConfigPromise;
+  }
+
+  function loadSquareSdkScript(src) {
+    return new Promise((resolve, reject) => {
+      if (window.Square) {
+        resolve();
+        return;
+      }
+      const existing = document.querySelector('script[data-square-sdk]');
+      if (existing) {
+        existing.addEventListener("load", () => resolve());
+        existing.addEventListener("error", () => reject(new Error("Square.js failed to load")));
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = src;
+      script.setAttribute("data-square-sdk", "1");
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Square.js failed to load"));
+      document.head.appendChild(script);
+    });
+  }
+
+  // Initializes the Square payments object + Card element once, and
+  // attaches the card element into #square-card-container in the modal.
+  // Safe to call more than once -- returns the same promise every time.
+  function initSquare() {
+    if (!squarePaymentsPromise) {
+      squarePaymentsPromise = fetchSquareConfig().then(async (config) => {
+        if (!config.appId || !config.locationId) {
+          throw new Error("Card payments aren't configured yet.");
+        }
+        const sdkSrc =
+          config.environment === "sandbox"
+            ? "https://sandbox.web.squarecdn.com/v1/square.js"
+            : "https://web.squarecdn.com/v1/square.js";
+        await loadSquareSdkScript(sdkSrc);
+        if (!window.Square) throw new Error("Square.js failed to load properly");
+        const payments = window.Square.payments(config.appId, config.locationId);
+        squareCard = await payments.card();
+        await squareCard.attach("#square-card-container");
+        return { payments, config };
+      });
+    }
+    return squarePaymentsPromise;
+  }
+
+  async function tokenizeCard(amount, billingContact) {
+    const result = await squareCard.tokenize({
+      amount: amount.toFixed(2),
+      currencyCode: "USD",
+      intent: "CHARGE",
+      customerInitiated: true,
+      sellerKeyedIn: false,
+      billingContact
+    });
+    if (result.status !== "OK") {
+      const detail = result.errors ? JSON.stringify(result.errors) : result.status;
+      throw new Error("Card details couldn't be verified (" + detail + ")");
+    }
+    return result.token;
+  }
+
+  async function submitBookingAndPayment(sourceId) {
+    const res = await fetch("/api/create-payment", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: token },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        bookingsCheckout: { slotAvailability, timezone: SITE_TIMEZONE },
-        callbacks: {
-          postFlowUrl: window.location.origin + window.location.pathname,
-          thankYouPageUrl: window.location.origin + window.location.pathname + "?booked=1"
+        sourceId,
+        serviceId: selectedSlot.serviceId,
+        scheduleId: selectedSlot.scheduleId,
+        startDate: selectedSlot.localStartDate,
+        endDate: selectedSlot.localEndDate,
+        location: selectedSlot.location,
+        basePrice: activeBasePrice,
+        addonIds: Array.from(selectedAddOnIds),
+        contact: {
+          firstName: contactFirstNameEl.value.trim(),
+          lastName: contactLastNameEl.value.trim(),
+          email: contactEmailEl.value.trim(),
+          phone: contactPhoneEl.value.trim()
         }
       })
     });
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      throw new Error("Could not start checkout (" + res.status + "): " + body);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || "Payment couldn't be completed. Please try again.");
     }
-    const data = await res.json();
-    return data.redirectSession.fullUrl;
+    return data;
   }
 
   // ---------- formatting helpers ----------
@@ -167,6 +241,8 @@
   let addonsListEl, totalValueEl, totalValue2El;
   let reviewNameEl, reviewDescEl, reviewRowsEl;
   let checkoutBtnEl, checkoutStatusEl;
+  let contactFirstNameEl, contactLastNameEl, contactEmailEl, contactPhoneEl;
+  let reviewFormEl, successPanelEl;
   let stepDots = [];
 
   let activeServiceId = null;
@@ -216,18 +292,36 @@
       "  </div>" +
 
       '  <div class="booking-step-panel" data-panel="3" hidden>' +
-      '    <div class="booking-review-card">' +
-      '      <div class="booking-review-name"></div>' +
-      '      <p class="booking-review-desc"></p>' +
-      '      <div class="booking-review-rows"></div>' +
-      '      <div class="booking-total-row"><span>Estimated total</span><strong class="booking-total-value-2"></strong></div>' +
+      '    <div class="booking-review-form">' +
+      '      <div class="booking-review-card">' +
+      '        <div class="booking-review-name"></div>' +
+      '        <p class="booking-review-desc"></p>' +
+      '        <div class="booking-review-rows"></div>' +
+      '        <div class="booking-total-row"><span>Total due today</span><strong class="booking-total-value-2"></strong></div>' +
+      "      </div>" +
+      '      <div class="booking-contact-fields">' +
+      '        <div class="booking-field-row">' +
+      '          <input type="text" class="booking-contact-first" placeholder="First name" autocomplete="given-name" required>' +
+      '          <input type="text" class="booking-contact-last" placeholder="Last name" autocomplete="family-name">' +
+      "        </div>" +
+      '        <input type="email" class="booking-contact-email" placeholder="Email" autocomplete="email" required>' +
+      '        <input type="tel" class="booking-contact-phone" placeholder="Phone" autocomplete="tel">' +
+      "      </div>" +
+      '      <label class="booking-card-label">Card details</label>' +
+      '      <div id="square-card-container" class="booking-card-container"></div>' +
+      '      <div class="booking-step-actions">' +
+      '        <button type="button" class="btn btn-ghost btn-sm" data-back-to="2">Back</button>' +
+      '        <button type="button" class="btn btn-primary btn-block booking-checkout-btn">Pay &amp; Book</button>' +
+      "      </div>" +
+      '      <div class="booking-checkout-status"></div>' +
+      '      <p class="booking-modal-note">Payment is processed securely by Square. Your card details never touch our servers.</p>' +
       "    </div>" +
-      '    <div class="booking-step-actions">' +
-      '      <button type="button" class="btn btn-ghost btn-sm" data-back-to="2">Back</button>' +
-      '      <button type="button" class="btn btn-primary btn-block booking-checkout-btn">Continue to Secure Checkout</button>' +
+      '    <div class="booking-success-panel" hidden>' +
+      '      <div class="booking-success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></div>' +
+      '      <h4>You&rsquo;re booked!</h4>' +
+      '      <p class="booking-success-detail">A confirmation is on its way to your email.</p>' +
+      '      <button type="button" class="btn btn-primary btn-block booking-success-close">Done</button>' +
       "    </div>" +
-      '    <div class="booking-checkout-status"></div>' +
-      '    <p class="booking-modal-note">You&rsquo;ll select these same extras, fill in your details and pay on Wix&rsquo;s secure hosted checkout. Nothing is booked until that step is complete.</p>' +
       "  </div>" +
       "</div>";
     document.body.appendChild(modalEl);
@@ -253,6 +347,13 @@
     checkoutBtnEl = modalEl.querySelector(".booking-checkout-btn");
     checkoutStatusEl = modalEl.querySelector(".booking-checkout-status");
 
+    contactFirstNameEl = modalEl.querySelector(".booking-contact-first");
+    contactLastNameEl = modalEl.querySelector(".booking-contact-last");
+    contactEmailEl = modalEl.querySelector(".booking-contact-email");
+    contactPhoneEl = modalEl.querySelector(".booking-contact-phone");
+    reviewFormEl = modalEl.querySelector(".booking-review-form");
+    successPanelEl = modalEl.querySelector(".booking-success-panel");
+
     dateInputEl.min = todayISO();
     dateInputEl.max = maxDateISO();
 
@@ -272,6 +373,7 @@
       btn.addEventListener("click", () => goToStep(parseInt(btn.getAttribute("data-next-to"), 10)));
     });
     checkoutBtnEl.addEventListener("click", handleCheckout);
+    modalEl.querySelector(".booking-success-close").addEventListener("click", closeModal);
   }
 
   function closeModal() {
@@ -290,7 +392,13 @@
     });
     statusEl.textContent = "";
     if (n === 2) renderAddonsStep();
-    if (n === 3) renderReviewStep();
+    if (n === 3) {
+      renderReviewStep();
+      // Kick off Square SDK init as soon as the review step is reached so
+      // the card element is ready by the time the visitor finishes typing
+      // their contact details. Failures surface when they hit Pay & Book.
+      initSquare().catch((err) => console.warn("[AGUYB Booking] Square init failed", err));
+    }
   }
 
   function openModal(serviceId, name, price, desc) {
@@ -308,6 +416,15 @@
     dateInputEl.value = todayISO();
     slotsEl.innerHTML = "";
     statusEl.textContent = "";
+    contactFirstNameEl.value = "";
+    contactLastNameEl.value = "";
+    contactEmailEl.value = "";
+    contactPhoneEl.value = "";
+    checkoutStatusEl.textContent = "";
+    reviewFormEl.hidden = false;
+    successPanelEl.hidden = true;
+    checkoutBtnEl.disabled = false;
+    checkoutBtnEl.textContent = "Pay & Book";
     goToStep(1);
     modalEl.classList.add("active");
     document.body.style.overflow = "hidden";
@@ -417,24 +534,62 @@
       goToStep(1);
       return;
     }
+    const firstName = contactFirstNameEl.value.trim();
+    const email = contactEmailEl.value.trim();
+    if (!firstName || !email) {
+      checkoutStatusEl.textContent = "Please enter your name and email.";
+      if (!firstName) contactFirstNameEl.focus();
+      else contactEmailEl.focus();
+      return;
+    }
+
     checkoutBtnEl.disabled = true;
-    checkoutBtnEl.textContent = "Redirecting…";
+    checkoutBtnEl.textContent = "Processing…";
     checkoutStatusEl.textContent = "";
+
     try {
-      const url = await createCheckoutRedirect(selectedSlot);
+      await initSquare();
+
+      const total = currentTotal();
+      const billingContact = {
+        givenName: firstName,
+        familyName: contactLastNameEl.value.trim(),
+        email,
+        phone: contactPhoneEl.value.trim(),
+        countryCode: "US"
+      };
+
+      const sourceId = await tokenizeCard(total, billingContact);
+
       if (typeof gtag === "function") {
         gtag("event", "begin_checkout", {
           currency: "USD",
-          value: currentTotal(),
-          items: [{ item_name: activeServiceName || "Studio Booking", price: currentTotal() }]
+          value: total,
+          items: [{ item_name: activeServiceName || "Studio Booking", price: total }]
         });
       }
-      window.location.href = url;
+
+      const result = await submitBookingAndPayment(sourceId);
+
+      if (typeof gtag === "function") {
+        gtag("event", "purchase", {
+          currency: "USD",
+          value: result.amount || total,
+          transaction_id: result.bookingId
+        });
+      }
+
+      const successDetailEl = modalEl.querySelector(".booking-success-detail");
+      successDetailEl.textContent =
+        "A confirmation for " + (activeServiceName || "your session") + " is on its way to " + email + ".";
+      reviewFormEl.hidden = true;
+      successPanelEl.hidden = false;
     } catch (err) {
-      checkoutStatusEl.textContent = "Couldn't start checkout. Please try again, or email guybertho@aguybstudios.com.";
-      checkoutBtnEl.disabled = false;
-      checkoutBtnEl.textContent = "Continue to Secure Checkout";
+      checkoutStatusEl.textContent = err && err.message ? err.message : "Something went wrong. Please try again, or email guybertho@aguybstudios.com.";
       console.warn("[AGUYB Booking]", err);
+    } finally {
+      checkoutBtnEl.disabled = false;
+      checkoutBtnEl.textContent = "Pay & Book";
     }
   }
 
