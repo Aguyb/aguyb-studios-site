@@ -10,17 +10,21 @@
    (api/create-payment.js) creates and confirms the booking in Wix and
    logs a Wix order, so it still shows up in the Wix dashboard for
    invoicing/reporting even though Square is the actual payment processor.
-   Availability lookups still use the anonymous Wix Headless visitor
-   token pattern shared with main.js and cms.js -- only the old
-   redirect-to-Wix-checkout step was replaced. See README > "Real booking"
-   for the full explanation.
+   Availability lookups go through api/available-slots.js (NOT a direct
+   anonymous call to Wix's Time Slots API anymore) because this studio is
+   sold as 6+1 separate Wix Bookings "services" (1/2/3/4/6/8-hour tiers
+   plus off-site Event Filming) that all share the same physical room and
+   the same single staff member, but each has its OWN Wix schedule. Wix's
+   own availability engine only checks a slot against its own service's
+   schedule, so without this proxy a confirmed 2-Hour booking would not
+   stop the 4-Hour tier from showing the same hour as bookable -- verified
+   live before this was added. The proxy cross-checks every sibling
+   schedule and filters those slots out server-side. See README > "Real
+   booking" for the full explanation.
    ========================================================================== */
 
 (function () {
   "use strict";
-
-  const WIX_CLIENT_ID = "b21d16f1-0865-4b6c-82c9-8fc43d39c696";
-  const SITE_TIMEZONE = "America/New_York";
 
   // Real add-ons from the "Studio Rental Weekday" add-on group in Wix,
   // shared by every Studio Rental hourly service this flow books. If you
@@ -52,41 +56,22 @@
     return STUDIO_RENTAL_SERVICE_IDS.has(serviceId) ? ADDONS : [];
   }
 
-  let tokenPromise = null;
-  function getVisitorToken() {
-    if (!tokenPromise) {
-      tokenPromise = fetch("https://www.wixapis.com/oauth2/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId: WIX_CLIENT_ID, grantType: "anonymous" })
-      })
-        .then((res) => {
-          if (!res.ok) throw new Error("Could not authenticate with Wix");
-          return res.json();
-        })
-        .then((data) => data.access_token);
-    }
-    return tokenPromise;
-  }
-
+  // Availability is fetched through our own /api/available-slots proxy
+  // rather than calling Wix's Time Slots API directly. Reason: this studio
+  // is sold as 6 separate hourly "services" (1/2/3/4/6/8 hours) plus an
+  // off-site Event Filming service, all run by the same single staff
+  // member/room, but Wix's own Time Slots API only checks a slot against
+  // its OWN service's schedule -- it doesn't know a 2-Hour booking at 10am
+  // should also block the 4-Hour tier's 10am slot. The server-side proxy
+  // cross-checks every sibling schedule before calling a time bookable.
+  // (Confirmed live: without this, a confirmed paid 2-Hour booking left
+  // the overlapping 4-Hour slot showing as available.)
   async function listAvailability(serviceId, dateStr) {
-    const token = await getVisitorToken();
-    const from = dateStr + "T00:00:00";
-    const to = dateStr + "T23:59:59";
-    const res = await fetch("https://www.wixapis.com/_api/service-availability/v2/time-slots", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: token },
-      body: JSON.stringify({
-        serviceId,
-        fromLocalDate: from,
-        toLocalDate: to,
-        timeZone: SITE_TIMEZONE,
-        bookable: true,
-        cursorPaging: { limit: 60 }
-      })
-    });
-    if (!res.ok) throw new Error("Could not load availability (" + res.status + ")");
-    const data = await res.json();
+    const res = await fetch(
+      "/api/available-slots?serviceId=" + encodeURIComponent(serviceId) + "&date=" + encodeURIComponent(dateStr)
+    );
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Could not load availability (" + res.status + ")");
     return data.timeSlots || [];
   }
 

@@ -78,6 +78,74 @@ function wixHeaders() {
   };
 }
 
+// Same physical studio / same single staff member sold as 7 separate Wix
+// Bookings services (6 studio-rental hour tiers + off-site Event Filming),
+// each with its own independent Wix schedule -- see api/available-slots.js
+// for the full explanation and the live test that proved Wix's own
+// double-booking check doesn't cross-reference them. That endpoint already
+// filters the client's slot picker, but a second person could still race
+// past it between page load and checkout, so this re-checks right before
+// actually creating the booking.
+const SIBLING_SCHEDULE_IDS = [
+  "0def0b72-d503-49ff-9e2f-84a4cf6e2acd", // 1 Hour (hidden)
+  "a6818320-518e-499d-92a4-6cfc925545ef", // 2 Hours
+  "676df7ad-9915-4b6a-ae07-c4645390081c", // 3 Hours
+  "66aeed0c-c0b0-47bd-a1b2-1f37c764d7a1", // 4 Hours
+  "ba80b99b-c697-46a9-8880-db1476d72820", // 6 Hours
+  "b88fca8d-72a8-4844-bfe9-1fc5e8001f87", // Full Day (8 Hours)
+  "1c35a29f-2639-456c-a30a-8c8e62ac425c"  // Event Filming
+];
+
+function localToUtcMillis(localDateTimeStr, timeZone) {
+  const guess = new Date(localDateTimeStr + "Z");
+  const asTz = new Date(guess.toLocaleString("en-US", { timeZone }));
+  const asUtc = new Date(guess.toLocaleString("en-US", { timeZone: "UTC" }));
+  const offset = asUtc.getTime() - asTz.getTime();
+  return guess.getTime() + offset;
+}
+
+function overlapsWindow(aStart, aEnd, bStart, bEnd) {
+  return aStart < bEnd && aEnd > bStart;
+}
+
+// Returns true if [startDate, endDate) (naive local datetime strings)
+// overlaps any CONFIRMED/PENDING booking on a sibling schedule.
+async function hasConflict(startDate, endDate) {
+  const reqStart = localToUtcMillis(startDate, TIMEZONE);
+  const reqEnd = localToUtcMillis(endDate, TIMEZONE);
+  const rangeStart = new Date(reqStart - 24 * 60 * 60 * 1000).toISOString();
+  const rangeEnd = new Date(reqEnd + 24 * 60 * 60 * 1000).toISOString();
+
+  const res = await fetch("https://www.wixapis.com/_api/bookings-reader/v2/extended-bookings/query", {
+    method: "POST",
+    headers: wixHeaders(),
+    body: JSON.stringify({
+      query: {
+        filter: {
+          $and: [
+            { "bookedEntity.item.slot.scheduleId": { $in: SIBLING_SCHEDULE_IDS } },
+            { status: { $in: ["CONFIRMED", "PENDING"] } },
+            { startDate: { $gte: rangeStart } },
+            { startDate: { $lte: rangeEnd } }
+          ]
+        },
+        cursorPaging: { limit: 100 }
+      }
+    })
+  });
+  if (!res.ok) {
+    // Fail closed on infrastructure errors: better to briefly block a
+    // legitimate booking than risk a silent double-booking.
+    throw new Error("Could not verify availability (" + res.status + ")");
+  }
+  const data = await res.json();
+  const bookings = (data.extendedBookings || []).map((b) => b.booking || b);
+  return bookings.some((b) => {
+    if (!b.startDate || !b.endDate) return false;
+    return overlapsWindow(reqStart, reqEnd, new Date(b.startDate).getTime(), new Date(b.endDate).getTime());
+  });
+}
+
 function squareBaseUrl() {
   return process.env.SQUARE_ENVIRONMENT === "sandbox"
     ? "https://connect.squareupsandbox.com"
@@ -200,6 +268,22 @@ module.exports = async function handler(req, res) {
   if (!process.env.SQUARE_ACCESS_TOKEN || !process.env.SQUARE_LOCATION_ID || !process.env.WIX_API_KEY) {
     console.error("[create-payment] missing required environment variables");
     res.status(500).json({ error: "Checkout isn't fully configured yet. Please email guybertho@aguybstudios.com to book." });
+    return;
+  }
+
+  // ---- 1b. re-check for cross-tier conflicts right before booking ----
+  // The client already filtered its slot picker through
+  // api/available-slots.js, but a second visitor could have booked the
+  // conflicting slot on a sibling tier in the meantime -- this closes
+  // that race window.
+  try {
+    if (await hasConflict(startDate, endDate)) {
+      res.status(409).json({ error: "That time just became unavailable. Please pick another slot." });
+      return;
+    }
+  } catch (err) {
+    console.error("[create-payment] conflict check failed", err);
+    res.status(502).json({ error: "Couldn't verify availability. Please try again." });
     return;
   }
 
