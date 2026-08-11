@@ -108,6 +108,25 @@ function overlapsWindow(aStart, aEnd, bStart, bEnd) {
   return aStart < bEnd && aEnd > bStart;
 }
 
+// Human-readable "Weekday, Month Day, Year, h:mm AM – h:mm PM" for the
+// confirmation email. Falls back to the raw strings if formatting fails for
+// any reason -- this must never be the thing that breaks email sending.
+function formatBookingWindow(startDate, endDate) {
+  try {
+    const startMs = localToUtcMillis(startDate, TIMEZONE);
+    const endMs = localToUtcMillis(endDate, TIMEZONE);
+    const dateFmt = new Intl.DateTimeFormat("en-US", {
+      timeZone: TIMEZONE, weekday: "long", month: "long", day: "numeric", year: "numeric"
+    });
+    const timeFmt = new Intl.DateTimeFormat("en-US", {
+      timeZone: TIMEZONE, hour: "numeric", minute: "2-digit"
+    });
+    return dateFmt.format(startMs) + ", " + timeFmt.format(startMs) + " – " + timeFmt.format(endMs);
+  } catch (e) {
+    return startDate + " – " + endDate;
+  }
+}
+
 // Returns true if [startDate, endDate) (naive local datetime strings)
 // overlaps any CONFIRMED/PENDING booking on a sibling schedule.
 async function hasConflict(startDate, endDate) {
@@ -462,6 +481,59 @@ module.exports = async function handler(req, res) {
     }
   } catch (err) {
     console.error("[create-payment] create order error after successful payment", bookingId, err);
+  }
+
+  // ---- 6. email the customer a direct booking confirmation ----
+  // Wix's built-in Automated Communications for Bookings aren't guaranteed
+  // to fire for API-driven custom-checkout bookings like this one -- Wix's
+  // own custom-checkout guide doesn't document any notification step at
+  // all, and Confirm Or Decline Booking has no notification field. So this
+  // sends an explicit transactional email via Wix's Email Transmission API
+  // instead of relying on that.
+  //
+  // Requires a *verified* sender email: Wix Dashboard -> Marketing ->
+  // Emails -> Senders -> verify guybertho@aguybstudios.com (or update
+  // senderEmailAddress below to whichever address you verify). Until
+  // that's done, this call fails harmlessly -- it's logged only and never
+  // blocks the customer-facing checkout response.
+  try {
+    const addonLines = chosenAddonIds
+      .map((id) => ALLOWED_ADDONS[id])
+      .filter(Boolean)
+      .map((a) => "<li>" + a.name + " — $" + a.price + "</li>")
+      .join("");
+    const emailRes = await fetch("https://www.wixapis.com/email-transmissions/v1/email-transmissions/send", {
+      method: "POST",
+      headers: wixHeaders(),
+      body: JSON.stringify({
+        emailTransmission: {
+          emailSubject: "You're booked! " + serviceDef.name + " — AGUYB Studios",
+          emailHtmlContent:
+            '<div style="font-family:sans-serif;font-size:15px;line-height:1.6;color:#111">' +
+            "<h2 style=\"margin-bottom:4px\">You're booked!</h2>" +
+            "<p>Hi " + (contact.firstName || "there") + ",</p>" +
+            "<p>Your booking with AGUYB Studios is confirmed:</p>" +
+            '<p style="margin:16px 0"><strong>' + serviceDef.name + "</strong><br>" +
+            formatBookingWindow(startDate, endDate) + "</p>" +
+            (addonLines ? "<p><strong>Add-ons:</strong></p><ul>" + addonLines + "</ul>" : "") +
+            '<p style="font-size:16px"><strong>Total paid: $' + total.toFixed(2) + "</strong></p>" +
+            "<p>Questions or need to reschedule? Just reply to this email or reach us at guybertho@aguybstudios.com.</p>" +
+            "<p>— AGUYB Studios</p>" +
+            "</div>",
+          senderName: "AGUYB Studios",
+          senderEmailAddress: "guybertho@aguybstudios.com",
+          replyTo: { emailAddress: "guybertho@aguybstudios.com" },
+          toRecipients: [{ emailAddress: contact.email }],
+          type: "TRANSACTIONAL"
+        },
+        idempotencyKey: bookingId
+      })
+    });
+    if (!emailRes.ok) {
+      console.error("[create-payment] confirmation email failed", bookingId, await emailRes.text());
+    }
+  } catch (err) {
+    console.error("[create-payment] confirmation email error", bookingId, err);
   }
 
   res.status(200).json({
