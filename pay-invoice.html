@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pay Your Invoice | AGUYB Studios</title>
+<meta name="description" content="Securely view and pay your AGUYB Studios invoice.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://www.aguybstudios.com/pay-invoice">
+
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+<!-- Google Analytics (GA4) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2EJPHQH27S"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-2EJPHQH27S');
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/style.css">
+
+<style>
+  /* Page-specific bits that build on the shared design system (.glass,
+     .booking-review-*, .booking-total-row, .booking-success-*) rather
+     than duplicating it -- just the pieces an invoice view needs that
+     nothing else on the site already has. */
+  .invoice-shell { max-width: 640px; margin: 0 auto; }
+  .invoice-card { padding: 40px; }
+  @media (max-width: 560px) { .invoice-card { padding: 26px 22px; } }
+
+  .invoice-top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 16px; margin-bottom: 28px; flex-wrap: wrap;
+  }
+  .invoice-top h1 {
+    font-size: clamp(22px, 3.6vw, 28px); margin-bottom: 6px;
+  }
+  .invoice-number { color: var(--text-2); font-size: 14px; }
+
+  .invoice-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 100px;
+    font-size: 12.5px; font-weight: 700; letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .invoice-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .invoice-badge.is-due { color: var(--cyan); background: rgba(23,167,209,0.14); }
+  .invoice-badge.is-overdue { color: #ff8080; background: rgba(255,128,128,0.14); }
+  .invoice-badge.is-paid { color: #4ade80; background: rgba(74,222,128,0.14); }
+  .invoice-badge.is-voided { color: var(--text-2); background: var(--surface-glass-bg-strong); }
+
+  .invoice-meta-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    margin-bottom: 24px; padding-bottom: 24px;
+    border-bottom: 1px solid var(--surface-glass-border);
+  }
+  .invoice-meta-label { display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin-bottom: 4px; }
+  .invoice-meta-value { font-size: 14.5px; font-weight: 600; }
+
+  .invoice-balance-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 20px; margin: 22px 0;
+    border-radius: var(--radius-sm);
+    background: rgba(23,167,209,0.1);
+    border: 1px solid rgba(23,167,209,0.25);
+  }
+  .invoice-balance-row.is-paid { background: rgba(74,222,128,0.1); border-color: rgba(74,222,128,0.28); }
+  .invoice-balance-label { font-size: 13px; color: var(--text-2); }
+  .invoice-balance-amount { font-family: 'Poppins', sans-serif; font-size: 26px; font-weight: 700; }
+
+  .invoice-state { text-align: center; padding: 50px 12px; }
+  .invoice-spinner {
+    width: 34px; height: 34px; margin: 0 auto 18px;
+    border-radius: 50%;
+    border: 3px solid var(--surface-glass-border);
+    border-top-color: var(--cyan);
+    animation: invoice-spin 0.85s linear infinite;
+  }
+  @keyframes invoice-spin { to { transform: rotate(360deg); } }
+  .invoice-state p { color: var(--text-2); font-size: 14.5px; }
+
+  .invoice-help {
+    text-align: center; margin-top: 22px; font-size: 13px; color: var(--text-3);
+  }
+  .invoice-help a { color: var(--cyan); font-weight: 600; }
+
+  [data-invoice-view] { display: none; }
+</style>
+</head>
+<body data-page="invoice">
+
+<!-- ============ NAV ============ -->
+<header class="nav" id="nav">
+  <div class="container nav-inner">
+    <a href="https://www.aguybstudios.com/" class="logo">
+      <span class="logo-mark"><img src="assets/logo-mark.png" alt="AGUYB Studios logo"></span>
+      <span>
+        AGUYB STUDIOS
+        <span class="logo-sub">VIDEO &amp; CONTENT STUDIO</span>
+      </span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="https://www.aguybstudios.com/sets">Sets</a>
+      <a href="https://www.aguybstudios.com/on-site-production">On&#8209;Site</a>
+      <a href="https://www.aguybstudios.com/pricing">Pricing</a>
+      <a href="https://www.aguybstudios.com/blog">Blog</a>
+      <a href="https://www.aguybstudios.com/faq">FAQ</a>
+      <a href="https://www.aguybstudios.com/#contact">Contact</a>
+    </nav>
+
+    <div class="nav-cta">
+      <a href="https://www.aguybstudios.com/pricing" class="btn btn-ghost btn-sm">Book Your Session</a>
+      <button class="nav-toggle" id="navToggle" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="https://www.aguybstudios.com/sets">Sets</a>
+  <a href="https://www.aguybstudios.com/on-site-production">On-Site</a>
+  <a href="https://www.aguybstudios.com/pricing">Pricing</a>
+  <a href="https://www.aguybstudios.com/blog">Blog</a>
+  <a href="https://www.aguybstudios.com/faq">FAQ</a>
+  <a href="https://www.aguybstudios.com/#contact">Contact</a>
+  <a href="https://www.aguybstudios.com/pricing" class="btn btn-primary" style="margin-top:10px;">Book Your Session</a>
+</div>
+
+<!-- ============ HERO ============ -->
+<section class="hero" style="min-height:38vh;">
+  <div class="hero-bg" style="background-image:url('https://static.wixstatic.com/media/059584_a44f16677a9e45aeadc0b90a6e9ae021~mv2.jpg');"></div>
+  <div class="hero-grid"></div>
+  <div class="container hero-inner">
+    <div class="eyebrow">Invoice Payment</div>
+    <h1 class="reveal" style="font-size:clamp(26px, 4.4vw, 38px); text-transform:none; font-weight:700;">Pay Your AGUYB Studios Invoice</h1>
+    <p class="hero-preview reveal">Review your invoice below and pay securely, right here.</p>
+  </div>
+</section>
+
+<!-- ============ INVOICE ============ -->
+<section class="section section-light">
+  <div class="container narrow invoice-shell">
+
+    <div class="glass invoice-card" data-invoice-view="loading">
+      <div class="invoice-state">
+        <div class="invoice-spinner"></div>
+        <p>Loading your invoice&hellip;</p>
+      </div>
+    </div>
+
+    <div class="glass invoice-card" data-invoice-view="error">
+      <div class="invoice-state">
+        <p id="invoiceErrorText">We couldn&rsquo;t load this invoice.</p>
+      </div>
+    </div>
+
+    <div class="glass invoice-card" data-invoice-view="loaded">
+      <div class="invoice-top">
+        <div>
+          <h1 id="invTitle">Invoice</h1>
+          <div class="invoice-number" id="invNumber"></div>
+        </div>
+        <span class="invoice-badge" id="invBadge"></span>
+      </div>
+
+      <div class="invoice-meta-grid">
+        <div>
+          <span class="invoice-meta-label">Billed To</span>
+          <span class="invoice-meta-value" id="invCustomer">&mdash;</span>
+        </div>
+        <div>
+          <span class="invoice-meta-label">From</span>
+          <span class="invoice-meta-value" id="invBusiness">AGUYB Studios</span>
+        </div>
+        <div>
+          <span class="invoice-meta-label">Issue Date</span>
+          <span class="invoice-meta-value" id="invIssueDate">&mdash;</span>
+        </div>
+        <div>
+          <span class="invoice-meta-label">Due Date</span>
+          <span class="invoice-meta-value" id="invDueDate">&mdash;</span>
+        </div>
+      </div>
+
+      <div class="booking-review-card" id="invLineItemsCard" style="display:none;">
+        <div class="booking-review-rows" id="invLineItems"></div>
+      </div>
+
+      <div class="booking-review-rows" style="margin-bottom:0;">
+        <div class="booking-review-row"><span>Subtotal</span><span id="invSubtotal">&mdash;</span></div>
+        <div class="booking-review-row" id="invDiscountRow" style="display:none;"><span>Discount</span><span id="invDiscount">&mdash;</span></div>
+        <div class="booking-review-row" id="invTaxRow" style="display:none;"><span>Tax</span><span id="invTax">&mdash;</span></div>
+        <div class="booking-review-row" id="invPaidRow" style="display:none;"><span>Already Paid</span><span id="invPaidAmount">&mdash;</span></div>
+      </div>
+
+      <div class="invoice-balance-row" id="invBalanceRow">
+        <span class="invoice-balance-label" id="invBalanceLabel">Amount Due</span>
+        <span class="invoice-balance-amount" id="invBalanceAmount">&mdash;</span>
+      </div>
+
+      <a href="#" id="invPayBtn" class="btn btn-primary btn-block" target="_self" rel="noopener">Pay Invoice</a>
+
+      <div class="invoice-help">
+        Questions about this invoice? Email <a href="mailto:guybertho@aguybstudios.com">guybertho@aguybstudios.com</a> or call <a href="tel:+19047384860">(904) 738&#8209;4860</a>.
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-about">
+        <a href="https://www.aguybstudios.com/" class="logo">
+          <span class="logo-mark"><img src="assets/logo-mark.png" alt="AGUYB Studios logo"></span>
+          <span>AGUYB STUDIOS</span>
+        </a>
+        <p>Professional video podcast production and content studio based in Jacksonville, Florida.</p>
+        <div class="footer-social">
+          <a href="https://www.instagram.com/aguybstudios/" target="_blank" rel="noopener" class="glass" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1"></circle></svg></a>
+          <a href="https://www.linkedin.com/company/105215456/" target="_blank" rel="noopener" class="glass" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"></rect><line x1="8" y1="11" x2="8" y2="16"></line><line x1="8" y1="8" x2="8" y2="8"></line><line x1="12" y1="11" x2="12" y2="16"></line><path d="M12 13c0-1.5 1-2 2-2s2 .5 2 2v3"></path></svg></a>
+          <a href="#" class="glass" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="4"></rect><path d="M10 9l5 3-5 3V9z"></path></svg></a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h5>Studio</h5>
+        <ul>
+          <li><a href="https://www.aguybstudios.com/#services">What We Build</a></li>
+          <li><a href="https://www.aguybstudios.com/sets">Sets</a></li>
+          <li><a href="https://www.aguybstudios.com/on-site-production">On-Site Production</a></li>
+          <li><a href="https://www.aguybstudios.com/pricing">Pricing</a></li>
+          <li><a href="https://www.aguybstudios.com/#process">Process</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="https://www.aguybstudios.com/#bundles">Bundles</a></li>
+          <li><a href="https://www.aguybstudios.com/#reviews">Reviews</a></li>
+          <li><a href="https://www.aguybstudios.com/blog">Blog</a></li>
+          <li><a href="https://www.aguybstudios.com/faq">FAQ</a></li>
+          <li><a href="https://www.aguybstudios.com/#contact">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Contact</h5>
+        <ul>
+          <li><a href="mailto:guybertho@aguybstudios.com">guybertho@aguybstudios.com</a></li>
+          <li><a href="tel:+19047384860">(904) 738&#8209;4860</a></li>
+          <li><a href="https://www.aguybstudios.com/pricing">Book Your Session</a></li>
+          <li><a href="https://www.aguybstudios.com/portfolio-rights">Portfolio &amp; Promotional Rights</a></li>
+          <li><a href="https://www.aguybstudios.com/privacy-policy">Privacy Policy</a></li>
+          <li><a href="https://www.aguybstudios.com/terms-of-service">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>&copy; <span id="year"></span> AGUYB Studios. All rights reserved.</span>
+      <span>Raising the standard of visual storytelling in Jacksonville.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/cms.js"></script>
+<script>
+(function () {
+  function esc(str) {
+    return String(str == null ? "" : str).replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
+
+  function showView(name) {
+    document.querySelectorAll("[data-invoice-view]").forEach((el) => {
+      el.style.display = el.getAttribute("data-invoice-view") === name ? "" : "none";
+    });
+  }
+
+  function fmtMoney(amount, currency) {
+    const n = Number(amount);
+    try {
+      return new Intl.NumberFormat("en-US", { style: "currency", currency: currency || "USD" }).format(isNaN(n) ? 0 : n);
+    } catch (e) {
+      return "$" + (isNaN(n) ? "0.00" : n.toFixed(2));
+    }
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return "—";
+    try {
+      return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date(iso));
+    } catch (e) {
+      return iso;
+    }
+  }
+
+  function showError(message) {
+    document.getElementById("invoiceErrorText").textContent = message || "We couldn’t load this invoice.";
+    showView("error");
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const invoiceId = params.get("invoiceId") || params.get("invoice_id") || params.get("id");
+
+  if (!invoiceId) {
+    showError("This link is missing an invoice reference. Please use the payment link from your invoice email, or contact us and we’ll resend it.");
+    return;
+  }
+
+  showView("loading");
+
+  fetch("/api/get-invoice?invoiceId=" + encodeURIComponent(invoiceId))
+    .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) {
+        showError(data && data.error ? data.error : "We couldn’t load this invoice.");
+        return;
+      }
+      renderInvoice(data.invoice);
+    })
+    .catch((err) => {
+      console.error("[pay-invoice] fetch failed", err);
+      showError("We couldn’t load this invoice. Please check your connection and try again.");
+    });
+
+  function renderInvoice(inv) {
+    document.title = "Invoice " + (inv.displayNumber || "") + " | AGUYB Studios";
+
+    document.getElementById("invTitle").textContent = inv.title || "Invoice";
+    document.getElementById("invNumber").textContent = inv.displayNumber ? "Invoice " + inv.displayNumber : "";
+    document.getElementById("invCustomer").textContent = inv.customerName || "—";
+    document.getElementById("invBusiness").textContent = inv.businessName || "AGUYB Studios";
+    document.getElementById("invIssueDate").textContent = fmtDate(inv.issueDate);
+    document.getElementById("invDueDate").textContent = fmtDate(inv.dueDate);
+
+    const badge = document.getElementById("invBadge");
+    const balance = Number(inv.totals.balance);
+    const isPaid = inv.status === "PAID" || balance <= 0;
+    const isVoided = inv.status === "VOIDED";
+    const isOverdue = !isPaid && !isVoided && inv.dueDate && new Date(inv.dueDate) < new Date();
+
+    if (isVoided) {
+      badge.textContent = "Voided";
+      badge.className = "invoice-badge is-voided";
+    } else if (isPaid) {
+      badge.textContent = "Paid";
+      badge.className = "invoice-badge is-paid";
+    } else if (isOverdue) {
+      badge.textContent = "Overdue";
+      badge.className = "invoice-badge is-overdue";
+    } else {
+      badge.textContent = "Payment Due";
+      badge.className = "invoice-badge is-due";
+    }
+
+    if (Array.isArray(inv.lineItems) && inv.lineItems.length) {
+      const wrap = document.getElementById("invLineItems");
+      wrap.innerHTML = inv.lineItems.map((li) => {
+        const qty = Number(li.quantity) || 1;
+        const label = qty > 1 ? esc(li.name) + " × " + qty : esc(li.name);
+        return '<div class="booking-review-row"><span>' + label + '</span><span>' + fmtMoney(li.lineTotal, inv.currency) + '</span></div>';
+      }).join("");
+      document.getElementById("invLineItemsCard").style.display = "";
+    }
+
+    document.getElementById("invSubtotal").textContent = fmtMoney(inv.totals.subtotal, inv.currency);
+
+    const discount = Number(inv.totals.discount);
+    if (discount > 0) {
+      document.getElementById("invDiscount").textContent = "−" + fmtMoney(discount, inv.currency);
+      document.getElementById("invDiscountRow").style.display = "";
+    }
+    const tax = Number(inv.totals.tax);
+    if (tax > 0) {
+      document.getElementById("invTax").textContent = fmtMoney(tax, inv.currency);
+      document.getElementById("invTaxRow").style.display = "";
+    }
+    const paidAmount = Number(inv.totals.paidAmount);
+    if (paidAmount > 0) {
+      document.getElementById("invPaidAmount").textContent = fmtMoney(paidAmount, inv.currency);
+      document.getElementById("invPaidRow").style.display = "";
+    }
+
+    const balanceRow = document.getElementById("invBalanceRow");
+    const payBtn = document.getElementById("invPayBtn");
+
+    if (isVoided) {
+      document.getElementById("invBalanceLabel").textContent = "Voided";
+      document.getElementById("invBalanceAmount").textContent = fmtMoney(inv.totals.total, inv.currency);
+      payBtn.style.display = "none";
+    } else if (isPaid) {
+      balanceRow.classList.add("is-paid");
+      document.getElementById("invBalanceLabel").textContent = "Paid in Full";
+      document.getElementById("invBalanceAmount").textContent = fmtMoney(inv.totals.total, inv.currency);
+      payBtn.style.display = "none";
+    } else {
+      document.getElementById("invBalanceLabel").textContent = "Amount Due";
+      document.getElementById("invBalanceAmount").textContent = fmtMoney(inv.totals.balance, inv.currency);
+      if (inv.checkoutUrl) {
+        payBtn.href = inv.checkoutUrl;
+      } else {
+        payBtn.textContent = "Payment Currently Unavailable — Contact Us";
+        payBtn.href = "mailto:guybertho@aguybstudios.com?subject=" + encodeURIComponent("Invoice " + (inv.displayNumber || "") + " payment");
+      }
+    }
+
+    showView("loaded");
+  }
+})();
+</script>
+</body>
+</html>
