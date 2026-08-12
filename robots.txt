@@ -3,5 +3,6 @@ Allow: /
 Disallow: /wix-headless-test.html
 Disallow: /legal/
 Disallow: /pay-invoice
+Disallow: /pay-custom
 
 Sitemap: https://www.aguybstudios.com/sitemap.xml
