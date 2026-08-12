@@ -1023,7 +1023,8 @@ h1, h2, h3, h4 {
 
 .coverage-panel { padding: 46px; display: grid; grid-template-columns: 1fr 1fr; gap: 46px; align-items: center; }
 .coverage-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 28px; }
-.coverage-list span { padding: 9px 16px; border-radius: 100px; font-size: 13px; color: var(--text-2); }
+.coverage-list span, .coverage-list a { padding: 9px 16px; border-radius: 100px; font-size: 13px; color: var(--text-2); }
+.coverage-list a:hover { color: var(--blue); border-color: var(--blue); }
 .coverage-note { font-size: 13px; color: var(--text-3); }
 .coverage-visual {
   position: relative;

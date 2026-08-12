@@ -486,7 +486,7 @@
             </div>
             <span class="acc-chevron">${ICON_CHEVRON}</span>
           </button>
-          <div class="acc-panel-wrap"><div class="acc-panel"><div class="acc-panel-inner"><p>${esc(s.description)}</p></div></div></div>
+          <div class="acc-panel-wrap"><div class="acc-panel"><div class="acc-panel-inner"><p>${esc(s.description)}</p>${s.url ? `<p style="margin-top:10px;"><a href="${esc(s.url)}" style="color:var(--blue);font-weight:600;">Learn more &rarr;</a></p>` : ""}</div></div></div>
         </div>`)
       .join("");
   }
@@ -791,7 +791,9 @@
     if (!list) return;
     list.innerHTML = areas
       .sort((a, b) => (a.order || 0) - (b.order || 0))
-      .map((a) => `<span class="glass">${esc(a.name)}</span>`)
+      .map((a) => a.url
+        ? `<a class="glass" href="${esc(a.url)}">${esc(a.name)}</a>`
+        : `<span class="glass">${esc(a.name)}</span>`)
       .join("");
   }
 
