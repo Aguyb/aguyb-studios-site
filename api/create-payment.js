@@ -45,21 +45,106 @@ const WIX_SITE_ID = process.env.WIX_SITE_ID || "d858f430-e27a-470b-8859-45d17372
 const WIX_BOOKINGS_APP_ID = "13d21c63-b5ec-5912-8397-c3a5ddb27a97";
 const TIMEZONE = "America/New_York";
 
-// Server-side price allowlist mirroring what's actually advertised on
-// pricing.html / index.html / sets.html. A single Wix Bookings service can
-// legitimately be booked at more than one price because several "bundle"
-// products on the site resell the same underlying studio-rental slot at a
-// marked-up price that folds in extra work (editing, producer, etc). Any
-// serviceId/price/add-on combination that isn't listed here is rejected
-// instead of trusting whatever total the client sends.
-const ALLOWED_SERVICES = {
-  "b77a785e-e00a-4e90-9903-015f8c53197c": { name: "Studio Rental — 2 Hours", prices: [399, 499], addons: true },
-  "eb75d42d-cb6e-4db8-99f8-56a71eaddae6": { name: "Studio Rental — 3 Hours", prices: [499, 929], addons: true },
-  "fbf025db-90ac-4ae4-a955-96c4d5c807af": { name: "Studio Rental — 4 Hours", prices: [599, 1249], addons: true },
-  "826cd5d0-0f36-4cd8-9821-4e5cbdb778a2": { name: "Studio Rental — 6 Hours", prices: [799], addons: true },
-  "4668ec4f-7cdd-49c4-ae39-ec87cc04328d": { name: "Studio Rental — Full Day", prices: [999, 1499], addons: true },
-  "713f9b3d-8419-454c-9730-f26bec6b8684": { name: "Event Filming — Raw Footage Delivery", prices: [450], addons: false }
+// ---------- service metadata + live price sync ----------
+// Previously the valid price(s) per service were a fully hardcoded
+// ALLOWED_SERVICES list. That silently went stale the moment a price was
+// edited in the Wix dashboard -- exactly what happened on 2026-08-12, when
+// the "2 Hours" tier's price was changed to $5 in Wix's pricing_tiers
+// collection (the same collection cms.js renders the live pricing page
+// from) while this file still only accepted $399/$499, rejecting every
+// real booking attempt at the new price with "Price doesn't match."
+//
+// Now the valid price(s) for each service are read LIVE, on every checkout,
+// straight from the same two Wix Data collections the public pricing page
+// itself renders from (pricing_tiers + bundles) via fetchLivePrices()
+// below -- see that function's comment for how bundle prices merge in. A
+// price change made in the Wix dashboard takes effect here immediately, no
+// code deploy needed, and it can never drift out of sync with what's
+// actually displayed to visitors.
+//
+// What stays hardcoded here is service metadata that ISN'T pricing --
+// display name and whether the service offers add-ons -- since neither is
+// stored in a form this file can safely trust from those two collections,
+// and both change far less often than prices do.
+const SERVICE_META = {
+  "b77a785e-e00a-4e90-9903-015f8c53197c": { name: "Studio Rental — 2 Hours", addons: true },
+  "eb75d42d-cb6e-4db8-99f8-56a71eaddae6": { name: "Studio Rental — 3 Hours", addons: true },
+  "fbf025db-90ac-4ae4-a955-96c4d5c807af": { name: "Studio Rental — 4 Hours", addons: true },
+  "826cd5d0-0f36-4cd8-9821-4e5cbdb778a2": { name: "Studio Rental — 6 Hours", addons: true },
+  "4668ec4f-7cdd-49c4-ae39-ec87cc04328d": { name: "Studio Rental — Full Day", addons: true },
+  "713f9b3d-8419-454c-9730-f26bec6b8684": { name: "Event Filming — Raw Footage Delivery", addons: false }
 };
+
+// Emergency fallback ONLY -- used if the live Wix Data fetch itself throws
+// (network/API outage), so a transient Wix Data hiccup degrades checkout to
+// "last known good" prices instead of blocking every booking outright. This
+// is never the source of truth during normal operation. Also covers Event
+// Filming, which isn't tracked in either the pricing_tiers or bundles Wix
+// collection at all, so it has no live price source to sync from.
+const FALLBACK_PRICES = {
+  "b77a785e-e00a-4e90-9903-015f8c53197c": [399, 499],
+  "eb75d42d-cb6e-4db8-99f8-56a71eaddae6": [499, 929],
+  "fbf025db-90ac-4ae4-a955-96c4d5c807af": [599, 1249],
+  "826cd5d0-0f36-4cd8-9821-4e5cbdb778a2": [799],
+  "4668ec4f-7cdd-49c4-ae39-ec87cc04328d": [999, 1499],
+  "713f9b3d-8419-454c-9730-f26bec6b8684": [450]
+};
+
+function parseMoney(val) {
+  const n = Number(String(val == null ? "" : val).replace(/[^0-9.]/g, ""));
+  return isNaN(n) ? null : n;
+}
+
+// Fetches current valid serviceId -> [prices] straight from the same two
+// Wix Data collections the live pricing page renders from: pricing_tiers
+// (the plain hourly tiers) and bundles (fixed packages that resell an
+// hourly tier's underlying serviceId at a marked-up price, e.g. "Quick
+// Content Session" reuses the 2-Hour service's id at $499 instead of $399).
+// Every serviceId that appears in either collection contributes its price
+// to that service's allowed-price list -- same effect as the old hardcoded
+// multi-price arrays, just read live instead of frozen in code.
+async function fetchLivePrices() {
+  const [tiersRes, bundlesRes] = await Promise.all([
+    fetch("https://www.wixapis.com/wix-data/v2/items/query", {
+      method: "POST",
+      headers: wixHeaders(),
+      body: JSON.stringify({ dataCollectionId: "pricing_tiers", query: { paging: { limit: 100 } } })
+    }),
+    fetch("https://www.wixapis.com/wix-data/v2/items/query", {
+      method: "POST",
+      headers: wixHeaders(),
+      body: JSON.stringify({ dataCollectionId: "bundles", query: { paging: { limit: 100 } } })
+    })
+  ]);
+  if (!tiersRes.ok || !bundlesRes.ok) {
+    throw new Error("pricing_tiers/bundles query failed (" + tiersRes.status + "/" + bundlesRes.status + ")");
+  }
+  const [tiersData, bundlesData] = await Promise.all([tiersRes.json(), bundlesRes.json()]);
+  const prices = {};
+  const addItem = (item) => {
+    const d = (item && item.data) || {};
+    const price = parseMoney(d.price);
+    if (!d.serviceId || price == null) return;
+    if (!prices[d.serviceId]) prices[d.serviceId] = new Set();
+    prices[d.serviceId].add(price);
+  };
+  (tiersData.dataItems || []).forEach(addItem);
+  (bundlesData.dataItems || []).forEach(addItem);
+  return prices;
+}
+
+// Merges live Wix prices with the static fallback: live data wins whenever
+// it has an entry for a service; the fallback only fills in services the
+// live collections don't cover (Event Filming) or steps in wholesale if the
+// live fetch failed.
+function mergeServicePrices(livePrices) {
+  const merged = {};
+  Object.keys(SERVICE_META).forEach((id) => {
+    const live = livePrices && livePrices[id];
+    merged[id] = live && live.size ? Array.from(live) : (FALLBACK_PRICES[id] || []);
+  });
+  return merged;
+}
 
 const ALLOWED_ADDONS = {
   "df3a4dbe-5b3c-4d5b-b97b-1bb1c24bc376": { name: "Additional camera", price: 40 },
@@ -262,15 +347,27 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const serviceDef = ALLOWED_SERVICES[serviceId];
-  if (!serviceDef) {
+  const serviceMeta = SERVICE_META[serviceId];
+  if (!serviceMeta) {
     res.status(400).json({ error: "Unknown service." });
     return;
   }
-  if (!serviceDef.prices.includes(Number(basePrice))) {
+
+  // Pull the current valid price(s) for this service live from Wix (see
+  // fetchLivePrices() above). A failure here degrades to FALLBACK_PRICES
+  // rather than blocking checkout entirely on a transient Wix Data hiccup.
+  let livePrices = null;
+  try {
+    livePrices = await fetchLivePrices();
+  } catch (err) {
+    console.error("[create-payment] live price fetch failed, using fallback prices", err);
+  }
+  const allowedPrices = mergeServicePrices(livePrices)[serviceId] || [];
+  if (!allowedPrices.includes(Number(basePrice))) {
     res.status(400).json({ error: "Price doesn't match — please refresh and try again." });
     return;
   }
+  const serviceDef = { name: serviceMeta.name, addons: serviceMeta.addons };
 
   const chosenAddonIds = Array.isArray(addonIds) ? addonIds.filter(Boolean) : [];
   if (chosenAddonIds.length && !serviceDef.addons) {
