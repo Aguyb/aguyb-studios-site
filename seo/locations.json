@@ -10,10 +10,10 @@
     "source": "Wix Data: coverage_areas",
     "areas": [
       { "name": "Downtown Jacksonville", "hasDedicatedPage": false },
-      { "name": "Jacksonville Beach", "hasDedicatedPage": false, "plannedUrl": "/jacksonville-beach-video-production.html" },
-      { "name": "Ponte Vedra Beach", "hasDedicatedPage": false, "plannedUrl": "/ponte-vedra-video-production.html" },
-      { "name": "Orange Park", "hasDedicatedPage": false, "plannedUrl": "/orange-park-video-production.html" },
-      { "name": "St. Augustine", "hasDedicatedPage": false, "plannedUrl": "/st-augustine-video-production.html" },
+      { "name": "Jacksonville Beach", "hasDedicatedPage": true, "url": "/jacksonville-beach-video-production" },
+      { "name": "Ponte Vedra Beach", "hasDedicatedPage": true, "url": "/ponte-vedra-video-production" },
+      { "name": "Orange Park", "hasDedicatedPage": true, "url": "/orange-park-video-production" },
+      { "name": "St. Augustine", "hasDedicatedPage": true, "url": "/st-augustine-video-production" },
       { "name": "Fernandina Beach", "hasDedicatedPage": false }
     ],
     "note": "Guideline also names Atlantic Beach and Neptune Beach. Not yet in the real coverage_areas collection -- add them there first (Wix Data) if genuinely served, don't add to schema/content until confirmed real."

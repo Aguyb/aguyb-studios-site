@@ -4,11 +4,11 @@
       "id": "studio-rental",
       "name": "Studio Rental",
       "description": "Hourly studio rental -- podcast, video and photography sets, fully lit and mic'd.",
-      "targetUrl": "/podcast-studio-jacksonville.html",
-      "status": "planned",
+      "targetUrl": "/podcast-studio-jacksonville",
+      "status": "built",
       "supportingUrls": [
-        "/pricing.html",
-        "/sets.html"
+        "/pricing",
+        "/sets"
       ],
       "backedBy": {
         "wixCollections": [
@@ -21,11 +21,11 @@
       "id": "podcast-production",
       "name": "Podcast Production",
       "description": "Full-service podcast production: strategy, multi-camera recording, audio, editing, clips, captions, distribution.",
-      "targetUrl": "/podcast-studio-jacksonville.html",
-      "status": "planned",
+      "targetUrl": "/podcast-studio-jacksonville",
+      "status": "built",
       "supportingUrls": [
-        "/pricing.html",
-        "/blog.html"
+        "/pricing",
+        "/blog"
       ],
       "backedBy": {
         "wixCollections": [
@@ -38,10 +38,10 @@
       "id": "video-production",
       "name": "Video Production",
       "description": "Commercial, corporate, brand, testimonial and social-media video production.",
-      "targetUrl": "/video-production-jacksonville.html",
-      "status": "planned",
+      "targetUrl": "/video-production-jacksonville",
+      "status": "built",
       "supportingUrls": [
-        "/pricing.html"
+        "/pricing"
       ],
       "backedBy": {
         "wixCollections": [
@@ -53,8 +53,8 @@
       "id": "social-media-content",
       "name": "Social Media Content",
       "description": "Monthly content-batching partner -- one production day becomes weeks of short-form content.",
-      "targetUrl": "/social-media-content-jacksonville.html",
-      "status": "planned",
+      "targetUrl": "/social-media-content-jacksonville",
+      "status": "built",
       "supportingUrls": [
         "/#bundles"
       ],
@@ -69,7 +69,7 @@
       "id": "on-site-production",
       "name": "On-Site / Mobile Production",
       "description": "We bring the studio to you -- cameras, lighting and audio at your location.",
-      "targetUrl": "/on-site-production.html",
+      "targetUrl": "/on-site-production",
       "status": "live",
       "supportingUrls": [],
       "backedBy": {
