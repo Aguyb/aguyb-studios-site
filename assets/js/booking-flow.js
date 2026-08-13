@@ -315,6 +315,15 @@
     const successDetailEl = modalEl.querySelector(".booking-success-detail");
     successDetailEl.textContent =
       "A confirmation for " + (activeServiceName || "your session") + " is on its way to " + contact.email + ".";
+    // Square's hosted receipt (transaction ID, card last-4, payment method)
+    // -- only shown when the server actually returned one, same condition
+    // used before including it in the confirmation email.
+    if (result.receiptUrl) {
+      successReceiptEl.href = result.receiptUrl;
+      successReceiptEl.hidden = false;
+    } else {
+      successReceiptEl.hidden = true;
+    }
     reviewFormEl.hidden = true;
     successPanelEl.hidden = false;
   }
@@ -425,7 +434,7 @@
   let checkoutBtnEl, checkoutStatusEl;
   let contactFirstNameEl, contactLastNameEl, contactEmailEl, contactPhoneEl;
   let walletsRowEl, walletsDividerEl, googlePayButtonEl, cashAppButtonEl;
-  let reviewFormEl, successPanelEl;
+  let reviewFormEl, successPanelEl, successReceiptEl;
   let stepDots = [];
 
   let activeServiceId = null;
@@ -508,6 +517,7 @@
       '      <div class="booking-success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></div>' +
       '      <h4>You&rsquo;re booked!</h4>' +
       '      <p class="booking-success-detail">A confirmation is on its way to your email.</p>' +
+      '      <a href="#" class="booking-success-receipt" target="_blank" rel="noopener" hidden>View payment receipt</a>' +
       '      <button type="button" class="btn btn-primary btn-block booking-success-close">Done</button>' +
       "    </div>" +
       "  </div>" +
@@ -545,6 +555,7 @@
     cashAppButtonEl = modalEl.querySelector("#cash-app-pay-button");
     reviewFormEl = modalEl.querySelector(".booking-review-form");
     successPanelEl = modalEl.querySelector(".booking-success-panel");
+    successReceiptEl = modalEl.querySelector(".booking-success-receipt");
 
     dateInputEl.min = todayISO();
     dateInputEl.max = maxDateISO();
@@ -621,6 +632,7 @@
     checkoutStatusEl.textContent = "";
     reviewFormEl.hidden = false;
     successPanelEl.hidden = true;
+    successReceiptEl.hidden = true;
     checkoutBtnEl.disabled = false;
     checkoutBtnEl.textContent = "Pay & Book";
     walletsRowEl.hidden = true;

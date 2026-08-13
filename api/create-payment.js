@@ -635,6 +635,13 @@ module.exports = async function handler(req, res) {
             formatBookingWindow(startDate, endDate) + "</p>" +
             (addonLines ? "<p><strong>Add-ons:</strong></p><ul>" + addonLines + "</ul>" : "") +
             '<p style="font-size:16px"><strong>Total paid: $' + total.toFixed(2) + "</strong></p>" +
+            // Square's own hosted receipt (transaction ID, card last-4,
+            // payment method) -- generated fresh on every successful charge,
+            // so this is only ever included when payment.receipt_url is
+            // actually present rather than assumed.
+            (payment.receipt_url
+              ? '<p><a href="' + payment.receipt_url + '" style="color:#17a7d1;font-weight:600;">View your payment receipt</a></p>'
+              : "") +
             "<p>Questions or need to reschedule? Just reply to this email or reach us at guybertho@aguybstudios.com.</p>" +
             "<p>— AGUYB Studios</p>" +
             "</div>",
