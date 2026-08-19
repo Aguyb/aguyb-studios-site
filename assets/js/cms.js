@@ -631,7 +631,7 @@
       return `
         <div class="shortform-card" data-video="${esc(video)}" data-poster="${esc(poster)}" data-caption="${esc(caption)}" data-vertical="true">
           <div class="card-photo">
-            <img${poster ? ` src="${esc(poster)}"` : ` class="img-fallback"`} alt="Short-form clip cover" loading="lazy">
+            <img${poster ? ` src="${esc(poster)}"` : ` class="img-fallback"`} alt="${esc(caption || "Short-form clip cover")}" loading="lazy">
             <div class="card-play">${ICON_PLAY}</div>
           </div>
           <div class="card-info"><b>${esc(c.title)}</b><span>${esc(c.subtitle)}</span></div>
@@ -660,7 +660,7 @@
       return `
         <div class="reel-card" data-video="${esc(video)}" data-poster="${esc(poster)}" data-caption="${esc(caption)}">
           <div class="card-photo">
-            <img${poster ? ` src="${esc(poster)}"` : ` class="img-fallback"`} alt="Podcast episode cover" loading="lazy">
+            <img${poster ? ` src="${esc(poster)}"` : ` class="img-fallback"`} alt="${esc(caption || "Podcast episode cover")}" loading="lazy">
             <div class="card-play">${ICON_PLAY}</div>
           </div>
           <div class="card-info"><b>${esc(w.title)}</b><span>${esc(w.subtitle)}</span>${w.client ? `<span class="reel-client">Filmed for ${esc(w.client)}</span>` : ""}</div>
@@ -822,7 +822,7 @@
       .sort((a, b) => (a.order || 0) - (b.order || 0))
       .map((p) => `
         <article class="post-card reveal">
-          <div class="post-media"><img src="${esc(resolveWixMediaUrl(p.image))}" alt="Blog post cover" loading="lazy"></div>
+          <div class="post-media"><img src="${esc(resolveWixMediaUrl(p.image))}" alt="${esc(p.title || "Blog post cover")}" loading="lazy"></div>
           <div class="post-body">
             <div class="post-meta"><span class="post-tag">${esc(p.category)}</span><span>&middot;</span><span>${esc(p.postDate)}</span></div>
             <h3>${esc(p.title)}</h3>

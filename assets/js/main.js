@@ -249,7 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const photoLightboxClose = document.getElementById('photoLightboxClose');
 
     const openPhotoLightbox = (src, caption) => {
-      if (photoLightboxImg) photoLightboxImg.setAttribute('src', src);
+      if (photoLightboxImg) {
+        photoLightboxImg.setAttribute('src', src);
+        photoLightboxImg.setAttribute('alt', caption || 'AGUYB Studios photo');
+      }
       if (photoLightboxCaption) photoLightboxCaption.textContent = caption || '';
       photoLightbox.classList.add('active');
       document.body.style.overflow = 'hidden';
@@ -395,6 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const setMainImage = (src) => {
         setModalMainImage.setAttribute('src', src);
+        setModalMainImage.setAttribute('alt', trigger.dataset.setName ? trigger.dataset.setName + ' — main photo' : 'Set photo');
         setModalThumbs.querySelectorAll('img').forEach(t => t.classList.toggle('active', t.getAttribute('src') === src));
       };
 
