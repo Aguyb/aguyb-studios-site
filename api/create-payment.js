@@ -614,6 +614,13 @@ module.exports = async function handler(req, res) {
   // senderEmailAddress below to whichever address you verify). Until
   // that's done, this call fails harmlessly -- it's logged only and never
   // blocks the customer-facing checkout response.
+  //
+  // IMPORTANT: Wix's sender-email match is case-sensitive. The verified
+  // record on this site is "Guybertho@aguybstudios.com" (capital G) --
+  // sending as all-lowercase "guybertho@..." gets rejected with
+  // UNVERIFIED_SENDER_EMAIL even though it's the same inbox. Confirmed
+  // live via a direct test call on 2026-08-19. Keep the capital G below
+  // unless the sender email is re-verified under a different exact string.
   try {
     const addonLines = chosenAddonIds
       .map((id) => ALLOWED_ADDONS[id])
@@ -646,7 +653,7 @@ module.exports = async function handler(req, res) {
             "<p>— AGUYB Studios</p>" +
             "</div>",
           senderName: "AGUYB Studios",
-          senderEmailAddress: "guybertho@aguybstudios.com",
+          senderEmailAddress: "Guybertho@aguybstudios.com",
           replyTo: { emailAddress: "guybertho@aguybstudios.com" },
           toRecipients: [{ emailAddress: contact.email }],
           type: "TRANSACTIONAL"

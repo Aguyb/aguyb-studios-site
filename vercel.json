@@ -1,5 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/podcast", "destination": "/podcast-studio-jacksonville", "permanent": true },
+    { "source": "/about", "destination": "/", "permanent": true }
+  ]
 }
